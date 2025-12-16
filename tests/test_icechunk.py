@@ -139,3 +139,5 @@ def test_append_icechunk(icechunk_storage):
     )
 
 # TODO: tag/release mechanism
+
+# TODO: parallel write
