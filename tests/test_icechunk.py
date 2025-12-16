@@ -56,7 +56,8 @@ def test_create_icechunk(icechunk_storage):
     )
 
 def test_update_icechunk(icechunk_storage):
-    repo = Repository.create(icechunk_storage)
+    repo = Repository.create(icechunk_storage,
+                             config=icechunk.RepositoryConfig(inline_chunk_threshold_bytes=0))
 
     a = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     with repo.transaction("main", message="create a") as store:
@@ -71,6 +72,7 @@ def test_update_icechunk(icechunk_storage):
     # reopen store and check contents of array
     repo = Repository.open(icechunk_storage)
 
+    print("snapshots...")
     for snapshot in repo.ancestry(branch="main"):
         print(snapshot)
 
@@ -81,6 +83,30 @@ def test_update_icechunk(icechunk_storage):
     np.testing.assert_array_equal(
         group["a"][:], np.array([[1, -1, 3], [4, -1, 6], [7, -1, 9]])
     )
+
+    # expire old snapshots (see https://icechunk.io/en/stable/expiration/)
+    current_snapshot = list(repo.ancestry(branch="main"))[0]
+    expiry_time = current_snapshot.written_at
+    expired = repo.expire_snapshots(older_than=expiry_time)
+    print("expired...")
+    print(expired)
+
+    print("snapshots...")
+    for snapshot in repo.ancestry(branch="main"):
+        print(snapshot)
+
+    session = repo.readonly_session(branch="main")
+    store = session.store
+
+    group = zarr.open_group(store=store, mode="r")
+    np.testing.assert_array_equal(
+        group["a"][:], np.array([[1, -1, 3], [4, -1, 6], [7, -1, 9]])
+    )
+
+    results = repo.garbage_collect(expiry_time)
+    print("deleted...")
+    print(results)
+
 
 def test_append_icechunk(icechunk_storage):
     repo = Repository.create(icechunk_storage)
@@ -111,7 +137,5 @@ def test_append_icechunk(icechunk_storage):
     np.testing.assert_array_equal(
         group["a"][:], np.concat((a, b), axis=1)
     )
-
-# TODO: remove deleted data from history
 
 # TODO: tag/release mechanism
