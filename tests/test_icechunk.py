@@ -4,6 +4,7 @@ import numpy as np
 import icechunk
 import pytest
 import tempfile
+import time
 import zarr
 
 from icechunk import Repository, Storage
@@ -11,6 +12,7 @@ from icechunk import Repository, Storage
 
 @pytest.fixture
 def icechunk_storage(tmpdir) -> "Storage":
+    print(f"creating new icechunk storage at {tmpdir}")
     return Storage.new_local_filesystem(str(tmpdir))
 
 
@@ -64,10 +66,22 @@ def test_update_icechunk(icechunk_storage):
         root = zarr.open_group(store)
         arr = root.create_array("a", shape=a.shape, dtype=a.dtype, chunks=(2, 2))
         arr[...] = a
+        tags = [{
+            "timestamp": time.time(),
+            "max_samples": a.shape[1]  # may not be number of samples due to deletes
+        }]
+        root.attrs["ofh-tags"] = tags
 
     with repo.transaction("main", message="update a") as store:
         root = zarr.open_group(store)
         root["a"][:, 1] = -1  # "delete" sample at index 1
+        # note we don't change the number of samples - so maybe we don't need to add a tag
+        tags = list(root.attrs["ofh-tags"])
+        tags.append({
+            "timestamp": time.time(),
+            "max_samples": root["a"].shape[1]
+        })
+        root.attrs["ofh-tags"] = tags
 
     # reopen store and check contents of array
     repo = Repository.open(icechunk_storage)
@@ -83,6 +97,7 @@ def test_update_icechunk(icechunk_storage):
     np.testing.assert_array_equal(
         group["a"][:], np.array([[1, -1, 3], [4, -1, 6], [7, -1, 9]])
     )
+    assert group.attrs["ofh-tags"][-1]["max_samples"] == 3
 
     # expire old snapshots (see https://icechunk.io/en/stable/expiration/)
     current_snapshot = list(repo.ancestry(branch="main"))[0]
@@ -116,6 +131,11 @@ def test_append_icechunk(icechunk_storage):
         root = zarr.open_group(store)
         arr = root.create_array("a", shape=a.shape, dtype=a.dtype, chunks=(2, 2))
         arr[...] = a
+        tags = [{
+            "timestamp": time.time(),
+            "max_samples": a.shape[1]
+        }]
+        root.attrs["ofh-tags"] = tags
 
     b = -np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     with repo.transaction("main", message="append b") as store:
@@ -123,6 +143,12 @@ def test_append_icechunk(icechunk_storage):
         arr = root["a"]
         arr.resize((3, 6))
         arr[:, 3:6] = b
+        tags = list(root.attrs["ofh-tags"])
+        tags.append({
+            "timestamp": time.time(),
+            "max_samples": arr.shape[1]
+        })
+        root.attrs["ofh-tags"] = tags
 
     # reopen store and check contents of array
     repo = Repository.open(icechunk_storage)
@@ -137,7 +163,6 @@ def test_append_icechunk(icechunk_storage):
     np.testing.assert_array_equal(
         group["a"][:], np.concat((a, b), axis=1)
     )
-
-# TODO: tag/release mechanism
+    assert group.attrs["ofh-tags"][-1]["max_samples"] == 6
 
 # TODO: parallel write
