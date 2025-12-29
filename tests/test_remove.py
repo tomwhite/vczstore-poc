@@ -62,7 +62,7 @@ def remove(vcz, sample_id):
 
     # create or update the delete mask
     if "sample_id_delete" not in root:
-        root.array(
+        array = root.array(
             "sample_id_delete",
             data=sample_id_delete,
             shape=sample_id_delete.shape,
@@ -70,6 +70,7 @@ def remove(vcz, sample_id):
             dtype=sample_id_delete.dtype,
             # TODO: compressor?
         )
+        array.attrs["_ARRAY_DIMENSIONS"] = ["samples"]
     else:
         root["sample_id_delete"] |= sample_id_delete
 
