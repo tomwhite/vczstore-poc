@@ -40,3 +40,10 @@ dynamic = ["version"]
 [project.urls]
 repository = "https://github.com/sgkit-dev/vczlib"
 
+[project.optional-dependencies]
+dev = [
+  "bio2zarr",
+  "cyvcf2",
+  "pytest",
+  "vcztools",
+]

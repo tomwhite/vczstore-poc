@@ -2,10 +2,12 @@
 # For the moment don't worry about atomicity or transactions, as we can use icechunk later for that.
 # Also, don't think about allele harmonisation yet.
 
+# NOTE: the below is now out of date as the test generates its own data
+
 # Create the VCF files, one with samples NA00001 and NA00002 and the other with NA00003
 
-# bcftools view -s NA00001,NA00002 -O z tests/data/vcf/sample.vcf.gz > tests/data/vcf/sample-part1.vcf.gz
-# bcftools view -s NA00003 -O z tests/data/vcf/sample.vcf.gz > tests/data/vcf/sample-part2.vcf.gz
+# bcftools view -s NA00001,NA00002 --no-update -O z tests/data/vcf/sample.vcf.gz > tests/data/vcf/sample-part1.vcf.gz
+# bcftools view -s NA00003 --no-update -O z tests/data/vcf/sample.vcf.gz > tests/data/vcf/sample-part2.vcf.gz
 # bcftools index -c tests/data/vcf/sample-part1.vcf.gz
 # bcftools index -c tests/data/vcf/sample-part2.vcf.gz
 
@@ -31,12 +33,30 @@
 # check GT field
 # diff <(python -m vcztools query -f '[%CHROM %POS %SAMPLE %GT\n]' ~/workspace/vczlib-poc/sample-part1.vcf.vcz) <(bcftools query -f '[%CHROM %POS %SAMPLE %GT\n]' tests/data/vcf/sample.vcf.gz)
 
+from .utils import compare_vcf_and_vcz, convert_vcf_to_vcz, run_vcztools
 import zarr
 
 from vczlib import append
 
-def test_append():
-    append("sample-part1.vcf.vcz", "sample-part2.vcf.vcz")
+def test_append(tmp_path):
+    print(tmp_path)
+
+    vcz1 = convert_vcf_to_vcz("sample-part1.vcf.gz", tmp_path)
+    vcz2 = convert_vcf_to_vcz("sample-part2.vcf.gz", tmp_path)
+
+    # check samples query
+    vcztools_out, _ = run_vcztools(f"query -l {vcz1}")
+    assert vcztools_out.strip() == "NA00001\nNA00002"
+
+    append(vcz1, vcz2)
+
+    # check samples query
+    vcztools_out, _ = run_vcztools(f"query -l {vcz1}")
+    assert vcztools_out.strip() == "NA00001\nNA00002\nNA00003"
+
+    # check equivalence with original VCF
+    compare_vcf_and_vcz(tmp_path, "view --no-version", "sample.vcf.gz", vcz1)
+
 
 def dims(arr):
     return arr.attrs["_ARRAY_DIMENSIONS"]
