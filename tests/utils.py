@@ -1,3 +1,5 @@
+# Most of this is from vcztools
+
 import pathlib
 from collections.abc import Iterator
 from contextlib import contextmanager
