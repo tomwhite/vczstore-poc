@@ -33,6 +33,7 @@
 # check GT field
 # diff <(python -m vcztools query -f '[%CHROM %POS %SAMPLE %GT\n]' ~/workspace/vczlib-poc/sample-part1.vcf.vcz) <(bcftools query -f '[%CHROM %POS %SAMPLE %GT\n]' tests/data/vcf/sample.vcf.gz)
 
+from vczlib.zarr_serial import dims
 from .utils import compare_vcf_and_vcz, convert_vcf_to_vcz, run_vcztools
 import zarr
 
@@ -57,9 +58,6 @@ def test_append(tmp_path):
     # check equivalence with original VCF
     compare_vcf_and_vcz(tmp_path, "view --no-version", "sample.vcf.gz", vcz1)
 
-
-def dims(arr):
-    return arr.attrs["_ARRAY_DIMENSIONS"]
 
 def test_find_samples_arrays():
     vcz = "sample-part1.vcf.vcz"
