@@ -16,6 +16,9 @@
 
 # python -m vcztools view ~/workspace/vczlib-poc/sample-part1.vcf.vcz
 
+# bcftools query -f '[%CHROM %POS %SAMPLE %GT\n]' ~/workspace/vcztools/tests/data/vcf/sample.vcf.gz 
+# python -m vcztools query -f '[%CHROM %POS %SAMPLE %GT\n]' ~/workspace/vczlib-poc/sample-part1.vcf.vcz
+
 # conda activate vczlib-poc-zarr-v2
 # pytest -vs tests/test_append.py
 
@@ -23,6 +26,9 @@
 # python -m vcztools query -l ~/workspace/vczlib-poc/sample-part1.vcf.vcz
 
 # python -m vcztools view ~/workspace/vczlib-poc/sample-part1.vcf.vcz
+
+# check GT field
+# diff <(python -m vcztools query -f '[%CHROM %POS %SAMPLE %GT\n]' ~/workspace/vczlib-poc/sample-part1.vcf.vcz) <(bcftools query -f '[%CHROM %POS %SAMPLE %GT\n]' tests/data/vcf/sample.vcf.gz)
 
 import zarr
 
@@ -38,9 +44,29 @@ def append(vcz1, vcz2):
     old_num_samples = sample_id1.shape[0]
     new_num_samples = old_num_samples + sample_id2.shape[0]
     new_shape = (new_num_samples,)
-    print(new_shape)
     sample_id1.resize(new_shape)
     sample_id1[old_num_samples:new_num_samples] = sample_id2[:]
+
+    # append genotypes
+    gt1 = root1["call_genotype"]
+    gt2 = root2["call_genotype"]
+    print(gt1)
+    print(gt2)
+    new_gt_shape = (gt1.shape[0], new_num_samples, gt1.shape[2],)
+    print(new_gt_shape)
+    gt1.resize(new_gt_shape)
+    gt1[:, old_num_samples:new_num_samples, :] = gt2[:]
+
+    call_genotype_mask1 = root1["call_genotype_mask"]
+    call_genotype_mask2 = root2["call_genotype_mask"]
+    call_genotype_mask1.resize(new_gt_shape)
+    call_genotype_mask1[:, old_num_samples:new_num_samples, :] = call_genotype_mask2[:]
+
+    call_genotype_phased1 = root1["call_genotype_phased"]
+    call_genotype_phased2 = root2["call_genotype_phased"]
+    new_call_genotype_phased_shape = (gt1.shape[0], new_num_samples)
+    call_genotype_phased1.resize(new_call_genotype_phased_shape)
+    call_genotype_phased1[:, old_num_samples:new_num_samples] = call_genotype_phased2[:]
 
 
 def test_append():
