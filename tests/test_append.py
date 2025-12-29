@@ -1,6 +1,6 @@
 # The idea here is to create two vcz datasets with different samples then we append on onto the other.
 # For the moment don't worry about atomicity or transactions, as we can use icechunk later for that.
-# Also, don't think about allele harmonisation.
+# Also, don't think about allele harmonisation yet.
 
 # Create the VCF files, one with samples NA00001 and NA00002 and the other with NA00003
 
@@ -14,7 +14,7 @@
 # rm -rf ~/workspace/vczlib-poc/sample-part1.vcf.vcz; python -m bio2zarr vcf2zarr convert --variants-chunk-size 10 --samples-chunk-size 2 --force tests/data/vcf/sample-part1.vcf.gz ~/workspace/vczlib-poc/sample-part1.vcf.vcz
 # rm -rf ~/workspace/vczlib-poc/sample-part2.vcf.vcz; python -m bio2zarr vcf2zarr convert --variants-chunk-size 10 --samples-chunk-size 2 --force tests/data/vcf/sample-part2.vcf.gz ~/workspace/vczlib-poc/sample-part2.vcf.vcz
 
-# python -m vcztools view ~/workspace/vczlib-poc/sample-part1.vcf.vcz
+# python -m vcztools view -H ~/workspace/vczlib-poc/sample-part1.vcf.vcz
 
 # bcftools query -f '[%CHROM %POS %SAMPLE %GT\n]' ~/workspace/vcztools/tests/data/vcf/sample.vcf.gz 
 # python -m vcztools query -f '[%CHROM %POS %SAMPLE %GT\n]' ~/workspace/vczlib-poc/sample-part1.vcf.vcz
@@ -25,7 +25,8 @@
 # number of samples
 # python -m vcztools query -l ~/workspace/vczlib-poc/sample-part1.vcf.vcz
 
-# python -m vcztools view ~/workspace/vczlib-poc/sample-part1.vcf.vcz
+# python -m vcztools view -H ~/workspace/vczlib-poc/sample-part1.vcf.vcz
+# bcftools view -H tests/data/vcf/sample.vcf.gz
 
 # check GT field
 # diff <(python -m vcztools query -f '[%CHROM %POS %SAMPLE %GT\n]' ~/workspace/vczlib-poc/sample-part1.vcf.vcz) <(bcftools query -f '[%CHROM %POS %SAMPLE %GT\n]' tests/data/vcf/sample.vcf.gz)
@@ -47,26 +48,21 @@ def append(vcz1, vcz2):
     sample_id1.resize(new_shape)
     sample_id1[old_num_samples:new_num_samples] = sample_id2[:]
 
-    # append genotypes
-    gt1 = root1["call_genotype"]
-    gt2 = root2["call_genotype"]
-    print(gt1)
-    print(gt2)
-    new_gt_shape = (gt1.shape[0], new_num_samples, gt1.shape[2],)
-    print(new_gt_shape)
-    gt1.resize(new_gt_shape)
-    gt1[:, old_num_samples:new_num_samples, :] = gt2[:]
-
-    call_genotype_mask1 = root1["call_genotype_mask"]
-    call_genotype_mask2 = root2["call_genotype_mask"]
-    call_genotype_mask1.resize(new_gt_shape)
-    call_genotype_mask1[:, old_num_samples:new_num_samples, :] = call_genotype_mask2[:]
-
-    call_genotype_phased1 = root1["call_genotype_phased"]
-    call_genotype_phased2 = root2["call_genotype_phased"]
-    new_call_genotype_phased_shape = (gt1.shape[0], new_num_samples)
-    call_genotype_phased1.resize(new_call_genotype_phased_shape)
-    call_genotype_phased1[:, old_num_samples:new_num_samples] = call_genotype_phased2[:]
+    # append genotype fields
+    
+    for var in root1.keys():
+        if var.startswith("call_"):
+            arr = root1[var]
+            if arr.ndim == 2:
+                new_shape = (arr.shape[0], new_num_samples)
+                arr.resize(new_shape)
+                arr[:, old_num_samples:new_num_samples] = root2[var][:]
+            elif arr.ndim == 3:
+                new_shape = (arr.shape[0], new_num_samples, arr.shape[2])
+                arr.resize(new_shape)
+                arr[:, old_num_samples:new_num_samples, :] = root2[var][:]
+            else:
+                raise ValueError("unsupport number of dims")
 
 
 def test_append():
