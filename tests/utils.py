@@ -262,15 +262,15 @@ def run_vcztools(args: str, expect_error=False) -> tuple[str, str]:
         assert result.exit_code == 0
     return result.stdout, result.stderr
 
-def compare_vcf_and_vcz(tmp_path, args, vcf_file, vcz):
+def compare_vcf_and_vcz(tmp_path, vcf_args, vcf_file, vcz_args, vcz):
     original = pathlib.Path("tests/data/vcf") / vcf_file
 
-    bcftools_out, _ = run_bcftools(f"{args} {original}")
+    bcftools_out, _ = run_bcftools(f"{vcf_args} {original}")
     bcftools_out_file = tmp_path.joinpath("bcftools_out.vcf")
     with open(bcftools_out_file, "w") as f:
         f.write(bcftools_out)
 
-    vcztools_out, _ = run_vcztools(f"{args} {vcz}")
+    vcztools_out, _ = run_vcztools(f"{vcz_args} {vcz}")
     vcztools_out_file = tmp_path.joinpath("vcztools_out.vcf")
     with open(vcztools_out_file, "w") as f:
         f.write(vcztools_out)

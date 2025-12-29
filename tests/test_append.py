@@ -56,7 +56,7 @@ def test_append(tmp_path):
     assert vcztools_out.strip() == "NA00001\nNA00002\nNA00003"
 
     # check equivalence with original VCF
-    compare_vcf_and_vcz(tmp_path, "view --no-version", "sample.vcf.gz", vcz1)
+    compare_vcf_and_vcz(tmp_path, "view --no-version", "sample.vcf.gz", "view --no-version", vcz1)
 
 
 def test_find_samples_arrays():
