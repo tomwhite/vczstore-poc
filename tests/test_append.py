@@ -2,14 +2,14 @@
 # For the moment don't worry about atomicity or transactions, as we can use icechunk later for that.
 # Also, don't think about allele harmonisation yet.
 
-# NOTE: the below is now out of date as the test generates its own data
-
 # Create the VCF files, one with samples NA00001 and NA00002 and the other with NA00003
 
 # bcftools view -s NA00001,NA00002 --no-update -O z tests/data/vcf/sample.vcf.gz > tests/data/vcf/sample-part1.vcf.gz
 # bcftools view -s NA00003 --no-update -O z tests/data/vcf/sample.vcf.gz > tests/data/vcf/sample-part2.vcf.gz
 # bcftools index -c tests/data/vcf/sample-part1.vcf.gz
 # bcftools index -c tests/data/vcf/sample-part2.vcf.gz
+
+# NOTE: the below is now out of date as the test generates its own data
 
 # Create vcz datasets
 
