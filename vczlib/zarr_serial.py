@@ -54,7 +54,7 @@ def append(vcz1, vcz2):
                 arr.resize(new_shape)
                 arr[:, old_num_samples:new_num_samples, :] = root2[var][:]
             else:
-                raise ValueError("unsupport number of dims")
+                raise ValueError("unsupported number of dims")
 
 
 def missing_val(arr):
