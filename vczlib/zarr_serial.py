@@ -84,6 +84,7 @@ def remove(vcz, sample_id):
     sample_id_delete[selection] = True
 
     # create or update the delete mask
+    # TODO: the mask should be a part of bio2zarr eventually
     if "sample_id_delete" not in root:
         dimension_names = ["samples"]
         array = root.array(
