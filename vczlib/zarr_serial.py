@@ -12,7 +12,8 @@ def search(a, v):
     return sorter[rank]
 
 def dims(arr):
-    return arr.attrs["_ARRAY_DIMENSIONS"]
+    # Zarr format v2 has _ARRAY_DIMENSIONS, v3 has dedicated metadata
+    return arr.attrs.get("_ARRAY_DIMENSIONS", None) or arr.metadata.dimension_names
 
 INT_MISSING, INT_FILL = -1, -2
 
@@ -84,15 +85,17 @@ def remove(vcz, sample_id):
 
     # create or update the delete mask
     if "sample_id_delete" not in root:
+        dimension_names = ["samples"]
         array = root.array(
             "sample_id_delete",
             data=sample_id_delete,
             shape=sample_id_delete.shape,
             chunks=sample_id_delete.shape,
             dtype=sample_id_delete.dtype,
-            # TODO: compressor?
+            # TODO: compressor or codecs?
+            # TODO: dimension_names for v3
         )
-        array.attrs["_ARRAY_DIMENSIONS"] = ["samples"]
+        array.attrs["_ARRAY_DIMENSIONS"] = dimension_names
     else:
         root["sample_id_delete"] |= sample_id_delete
 

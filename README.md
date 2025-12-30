@@ -36,3 +36,19 @@ pip install -U -e ../vcztools  # delete-mask-zarr-python-v3-fix branch
 pip install 'zarr>3'
 pytest -vs
 ```
+
+* Transactions: none
+* Distributed: single machine
+* Zarr: v3, format 3
+
+```shell
+conda deactivate
+conda env remove -n vczlib-poc-zarr-v3-f3
+conda create --name vczlib-poc-zarr-v3-f3 -y 'python==3.12'
+conda activate vczlib-poc-zarr-v3-f3
+pip install -e '.[dev]'
+pip install -U -e ../bio2zarr  # zarr-python-v3-fix-zarr-format-3 branch
+pip install -U -e ../vcztools  # delete-mask-zarr-python-v3-fix branch
+pip install 'zarr>3'
+pytest -vs
+```
