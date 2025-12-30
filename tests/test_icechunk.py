@@ -1,12 +1,11 @@
 from typing import Iterable
 
 import numpy as np
-import icechunk
 import pytest
-import tempfile
 import time
 import zarr
 
+icechunk = pytest.importorskip("icechunk")
 from icechunk import Repository, Storage
 
 
