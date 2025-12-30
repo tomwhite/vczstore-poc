@@ -33,6 +33,8 @@
 # check GT field
 # diff <(python -m vcztools query -f '[%CHROM %POS %SAMPLE %GT\n]' ~/workspace/vczlib-poc/sample-part1.vcf.vcz) <(bcftools query -f '[%CHROM %POS %SAMPLE %GT\n]' tests/data/vcf/sample.vcf.gz)
 
+import pytest
+
 from vczlib.zarr_serial import dims
 from .utils import compare_vcf_and_vcz, convert_vcf_to_vcz, run_vcztools
 import zarr
@@ -50,6 +52,29 @@ def test_append(tmp_path):
     assert vcztools_out.strip() == "NA00001\nNA00002"
 
     append(vcz1, vcz2)
+
+    # check samples query
+    vcztools_out, _ = run_vcztools(f"query -l {vcz1}")
+    assert vcztools_out.strip() == "NA00001\nNA00002\nNA00003"
+
+    # check equivalence with original VCF
+    compare_vcf_and_vcz(tmp_path, "view --no-version", "sample.vcf.gz", "view --no-version", vcz1)
+
+
+def test_append_cubed(tmp_path):
+    pytest.importorskip("cubed")
+
+    print(tmp_path)
+
+    vcz1 = convert_vcf_to_vcz("sample-part1.vcf.gz", tmp_path)
+    vcz2 = convert_vcf_to_vcz("sample-part2.vcf.gz", tmp_path)
+
+    # check samples query
+    vcztools_out, _ = run_vcztools(f"query -l {vcz1}")
+    assert vcztools_out.strip() == "NA00001\nNA00002"
+
+    from vczlib.cubed_impl import append as append_2
+    append_2(vcz1, vcz2)
 
     # check samples query
     vcztools_out, _ = run_vcztools(f"query -l {vcz1}")

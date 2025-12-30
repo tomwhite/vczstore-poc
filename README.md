@@ -52,3 +52,18 @@ pip install -U -e ../vcztools  # delete-mask-zarr-python-v3-fix branch
 pip install 'zarr>3'
 pytest -vs
 ```
+
+* Transactions: none
+* Distributed: cubed
+* Zarr: v2
+
+```shell
+conda deactivate
+conda env remove -n vczlib-poc-cubed-zarr-v2
+conda create --name vczlib-poc-cubed-zarr-v2 -y 'python==3.12'
+conda activate vczlib-poc-cubed-zarr-v2
+pip install -e '.[dev]'
+pip install -U -e ../vcztools  # delete-mask branch
+pip install -e '../cubed[diagnostics]' # update branch
+pytest -vs
+```
