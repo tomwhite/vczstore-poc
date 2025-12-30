@@ -1,5 +1,6 @@
 import cubed
 from cubed.array.update import append as cubed_append
+from cubed.array.update import set_ as cubed_set
 import numpy as np
 import zarr
 
@@ -53,3 +54,67 @@ def append(vcz1, vcz2):
 
     # consolidate metadata
     zarr.consolidate_metadata(vcz1)
+
+
+def missing_val(arr):
+    if arr.dtype.kind == "i":
+        return INT_MISSING
+    elif arr.dtype.kind == "f":
+        return FLOAT32_MISSING
+    elif arr.dtype.kind == "b":
+        return False
+    else:
+        raise ValueError(f"unrecognised dtype: {arr.dtype}")
+
+
+def remove(vcz, sample_id):
+    root = zarr.open(vcz, mode="r+")
+    all_samples = root["sample_id"][:]
+
+    # find index of sample to remove
+    unknown_samples = np.setdiff1d(sample_id, all_samples)
+    if len(unknown_samples) > 0:
+        raise ValueError(f"unrecognised sample: {sample_id}")
+    selection = search(all_samples, sample_id)
+    sample_id_delete = np.zeros(all_samples.shape, dtype=bool)
+    sample_id_delete[selection] = True
+
+    # create or update the delete mask
+    # TODO: the mask should be a part of bio2zarr eventually
+    if "sample_id_delete" not in root:
+        dimension_names = ["samples"]
+        array = root.array(
+            "sample_id_delete",
+            data=sample_id_delete,
+            shape=sample_id_delete.shape,
+            chunks=sample_id_delete.shape,
+            dtype=sample_id_delete.dtype,
+            # TODO: compressor or codecs?
+            # TODO: dimension_names for v3
+        )
+        array.attrs["_ARRAY_DIMENSIONS"] = dimension_names
+    else:
+        root["sample_id_delete"] |= sample_id_delete
+
+    # overwrite sample data
+    cubed_arrays = []
+    for var in root.keys():
+        arr = root[var]
+        if (
+            var.startswith("call_")
+            and dims(arr)[0] == "variants"
+            and dims(arr)[1] == "samples"
+        ):
+            cubed_arr = cubed.from_zarr(vcz, path=var, mode="r+")
+            c = cubed_set(cubed_arr, (slice(None), selection, Ellipsis), missing_val(arr))
+            cubed_arrays.append(c)
+            # root[var][:, selection, ...] = missing_val(arr)
+
+    # compute all arrays
+    cubed.compute(*cubed_arrays, _return_in_memory_array=False)
+
+    # TODO: recalculate variant_AC, variant_AN
+    # see _compute_info_fields in vcztools
+
+    # consolidate metadata (may not be needed if sample_id_delete was already present)
+    zarr.consolidate_metadata(vcz)
