@@ -35,7 +35,6 @@
 
 import pytest
 
-from vczlib.zarr_serial import dims
 from .utils import compare_vcf_and_vcz, convert_vcf_to_vcz, run_vcztools
 import zarr
 
@@ -83,12 +82,3 @@ def test_append_cubed(tmp_path):
     # check equivalence with original VCF
     compare_vcf_and_vcz(tmp_path, "view --no-version", "sample.vcf.gz", "view --no-version", vcz1)
 
-
-def test_find_samples_arrays():
-    vcz = "sample-part1.vcf.vcz"
-
-    root = zarr.open(vcz, mode="r")
-    for var in root.keys():
-        arr = root[var]
-        if "samples" in dims(arr):
-            print(var, dims(arr))
