@@ -3,31 +3,10 @@ from cubed.array.update import append as cubed_append
 from cubed.array.update import set_ as cubed_set
 import numpy as np
 import zarr
+from vcztools.constants import INT_MISSING, FLOAT32_MISSING
+from vcztools.utils import search
+from vcztools.vcf_writer import dims
 
-# from vcztools
-def search(a, v):
-    """
-    Finds the indices into an array a corresponding to the elements in v.
-    The behaviour is undefined if any elements in v are not in a.
-    """
-    sorter = np.argsort(a)
-    rank = np.searchsorted(a, v, sorter=sorter)
-    return sorter[rank]
-
-def dims(arr):
-    # Zarr format v2 has _ARRAY_DIMENSIONS, v3 has dedicated metadata
-    return arr.attrs.get("_ARRAY_DIMENSIONS", None) or arr.metadata.dimension_names
-
-INT_MISSING, INT_FILL = -1, -2
-
-FLOAT32_MISSING, FLOAT32_FILL = np.array([0x7F800001, 0x7F800002], dtype=np.int32).view(
-    np.float32
-)
-FLOAT32_MISSING_AS_INT32, FLOAT32_FILL_AS_INT32 = np.array(
-    [0x7F800001, 0x7F800002], dtype=np.int32
-)
-
-# end from vcztools
 
 def append(vcz1, vcz2):
     """Append vcz2 to vcz1 in place"""

@@ -65,5 +65,5 @@ conda activate vczlib-poc-cubed-zarr-v2
 pip install -e '.[dev]'
 pip install -U -e ../vcztools  # delete-mask branch
 pip install -e '../cubed[diagnostics]' # update branch
-pytest -vs
+pytest -vs -k cubed
 ```
