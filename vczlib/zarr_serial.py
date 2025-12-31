@@ -37,7 +37,8 @@ def append(vcz1, vcz2):
                 raise ValueError("unsupported number of dims")
 
     # consolidate metadata
-    zarr.consolidate_metadata(vcz1)
+    # TODO: icechunk doesn't support consolidated metadata
+    # zarr.consolidate_metadata(vcz1)
 
 def missing_val(arr):
     if arr.dtype.kind == "i":
