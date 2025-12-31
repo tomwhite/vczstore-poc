@@ -5,7 +5,7 @@ from vcztools.constants import INT_MISSING, FLOAT32_MISSING
 from vcztools.utils import search
 from vcztools.vcf_writer import dims
 
-def append(vcz1, vcz2):
+def append(vcz1, vcz2, consolidate_metadata=True):
     """Append vcz2 to vcz1 in place"""
     root1 = zarr.open(vcz1, mode="r+")
     root2 = zarr.open(vcz2, mode="r")
@@ -37,8 +37,8 @@ def append(vcz1, vcz2):
                 raise ValueError("unsupported number of dims")
 
     # consolidate metadata
-    # TODO: icechunk doesn't support consolidated metadata
-    # zarr.consolidate_metadata(vcz1)
+    if consolidate_metadata:
+        zarr.consolidate_metadata(vcz1)
 
 def missing_val(arr):
     if arr.dtype.kind == "i":
@@ -51,7 +51,7 @@ def missing_val(arr):
         raise ValueError(f"unrecognised dtype: {arr.dtype}")
 
 
-def remove(vcz, sample_id):
+def remove(vcz, sample_id, consolidate_metadata=True):
     root = zarr.open(vcz, mode="r+")
     all_samples = root["sample_id"][:]
 
@@ -94,5 +94,5 @@ def remove(vcz, sample_id):
     # see _compute_info_fields in vcztools
 
     # consolidate metadata (may not be needed if sample_id_delete was already present)
-    # TODO: icechunk doesn't support consolidated metadata
-    # zarr.consolidate_metadata(vcz)
+    if consolidate_metadata:
+        zarr.consolidate_metadata(vcz)

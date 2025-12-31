@@ -79,7 +79,7 @@ conda create --name vczlib-poc-icechunk -y 'python==3.12'
 conda activate vczlib-poc-icechunk
 pip install -e '.[dev]'
 pip install -U -e ../bio2zarr  # zarr-python-v3-fix-zarr-format-3 branch
-pip install -U -e ../vcztools  # icechunk branch
+pip install -U -e ../vcztools  # delete-mask-zarr-python-v3-fix-icechunk branch
 pip install 'zarr>3' icechunk
-pytest -vs tests/test_append_icechunk.py
+pytest -vs -k icechunk
 ```

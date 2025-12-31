@@ -104,7 +104,7 @@ def test_append_icechunk(tmp_path):
     repo = Repository.open(icechunk_storage)
 
     with repo.transaction("main", message="append") as store:
-        append(store, vcz2)
+        append(store, vcz2, consolidate_metadata=False)
 
     # check samples query
     vcztools_out, _ = run_vcztools(f"query -l {vcz1} --zarr-backend-storage icechunk")

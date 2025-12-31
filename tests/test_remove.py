@@ -81,7 +81,7 @@ def test_remove_icechunk(tmp_path):
     repo = Repository.open(icechunk_storage)
 
     with repo.transaction("main", message="append") as store:
-        remove(store, "NA00002")
+        remove(store, "NA00002", consolidate_metadata=False)
 
     # check samples query
     vcztools_out, _ = run_vcztools(f"query -l {vcz} --zarr-backend-storage icechunk")
