@@ -5,12 +5,11 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from itertools import zip_longest
 import subprocess
-import pathlib
-
 
 import cyvcf2
 import numpy as np
 from bio2zarr import vcf
+import zarr
 
 import click.testing as ct
 
@@ -276,3 +275,37 @@ def compare_vcf_and_vcz(tmp_path, vcf_args, vcf_file, vcz_args, vcz):
         f.write(vcztools_out)
 
     assert_vcfs_close(bcftools_out_file, vcztools_out_file)
+
+
+def convert_vcf_to_vcz_icechunk(vcf_name, tmp_path):
+    from icechunk import Repository, Storage
+
+    vcz = convert_vcf_to_vcz(vcf_name, tmp_path)
+
+    source = zarr.storage.LocalStore(vcz)
+
+    ic_tmp_path = tmp_path / "icechunk"
+    ic_tmp_path.mkdir()
+    output = (pathlib.Path(ic_tmp_path) / vcf_name).with_suffix(".vcz")
+    storage =  Storage.new_local_filesystem(str(output))
+    repo = Repository.create(storage=storage)
+    session = repo.writable_session("main")
+    dest = session.store
+
+    copy_store(source, dest)
+
+    session.commit("commit 1")
+
+    return output
+
+
+# inspired by commit f3c123d3a2a94b7f14bc995e3897ee6acc9acbd1 in zarr-python
+def copy_store(source, dest):
+    from zarr.testing.stateful import SyncStoreWrapper
+    from zarr.core.buffer.core import default_buffer_prototype
+    s = SyncStoreWrapper(source)
+    d = SyncStoreWrapper(dest)
+    # need reverse=True to create zarr.json before chunks (otherwise icechunk complains)
+    for source_key in sorted(s.list(), reverse=True):
+        buffer = s.get(source_key, default_buffer_prototype())
+        d.set(source_key, buffer)
