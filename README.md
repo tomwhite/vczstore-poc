@@ -67,3 +67,19 @@ pip install -U -e ../vcztools  # delete-mask branch
 pip install -e '../cubed[diagnostics]' # update branch
 pytest -vs -k cubed
 ```
+
+* Transactions: icechunk
+* Distributed: single machine
+* Zarr: v3, format 3
+
+```shell
+conda deactivate
+conda env remove -n vczlib-poc-icechunk
+conda create --name vczlib-poc-icechunk -y 'python==3.12'
+conda activate vczlib-poc-icechunk
+pip install -e '.[dev]'
+pip install -U -e ../bio2zarr  # zarr-python-v3-fix-zarr-format-3 branch
+pip install -U -e ../vcztools  # icechunk branch
+pip install 'zarr>3' icechunk
+pytest -vs tests/test_append_icechunk.py
+```
