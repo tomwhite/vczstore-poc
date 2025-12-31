@@ -94,4 +94,5 @@ def remove(vcz, sample_id):
     # see _compute_info_fields in vcztools
 
     # consolidate metadata (may not be needed if sample_id_delete was already present)
-    zarr.consolidate_metadata(vcz)
+    # TODO: icechunk doesn't support consolidated metadata
+    # zarr.consolidate_metadata(vcz)
