@@ -1,9 +1,9 @@
 import numpy as np
 import zarr
-
-from vcztools.constants import INT_MISSING, FLOAT32_MISSING
+from vcztools.constants import FLOAT32_MISSING, INT_MISSING
 from vcztools.utils import search
 from vcztools.vcf_writer import dims
+
 
 def append(vcz1, vcz2, consolidate_metadata=True):
     """Append vcz2 to vcz1 in place"""
@@ -21,7 +21,7 @@ def append(vcz1, vcz2, consolidate_metadata=True):
     sample_id1[old_num_samples:new_num_samples] = sample_id2[:]
 
     # append genotype fields
-    
+
     for var in root1.keys():
         if var.startswith("call_"):
             arr = root1[var]
@@ -40,6 +40,7 @@ def append(vcz1, vcz2, consolidate_metadata=True):
     if consolidate_metadata:
         zarr.consolidate_metadata(vcz1)
 
+
 def missing_val(arr):
     if arr.dtype.kind == "i":
         return INT_MISSING
@@ -52,6 +53,7 @@ def missing_val(arr):
 
 
 def remove(vcz, sample_id, consolidate_metadata=True):
+    """Remove a sample from vcz and overwrite with missing data"""
     root = zarr.open(vcz, mode="r+")
     all_samples = root["sample_id"][:]
 

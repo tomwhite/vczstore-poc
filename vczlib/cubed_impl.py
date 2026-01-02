@@ -1,9 +1,9 @@
 import cubed
-from cubed.array.update import append as cubed_append
-from cubed.array.update import set_ as cubed_set
 import numpy as np
 import zarr
-from vcztools.constants import INT_MISSING, FLOAT32_MISSING
+from cubed.array.update import append as cubed_append
+from cubed.array.update import set_ as cubed_set
+from vcztools.constants import FLOAT32_MISSING, INT_MISSING
 from vcztools.utils import search
 from vcztools.vcf_writer import dims
 
@@ -85,7 +85,9 @@ def remove(vcz, sample_id):
             and dims(arr)[1] == "samples"
         ):
             cubed_arr = cubed.from_zarr(vcz, path=var, mode="r+")
-            c = cubed_set(cubed_arr, (slice(None), selection, Ellipsis), missing_val(arr))
+            c = cubed_set(
+                cubed_arr, (slice(None), selection, Ellipsis), missing_val(arr)
+            )
             cubed_arrays.append(c)
             # root[var][:, selection, ...] = missing_val(arr)
 

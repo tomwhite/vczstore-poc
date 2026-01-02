@@ -1,21 +1,18 @@
 # Most of this is from vcztools
 
 import pathlib
+import subprocess
 from collections.abc import Iterator
 from contextlib import contextmanager
 from itertools import zip_longest
-import subprocess
-
-import cyvcf2
-import numpy as np
-from bio2zarr import vcf
-import zarr
 
 import click.testing as ct
-
+import cyvcf2
+import numpy as np
 import vcztools.cli as cli
-
+import zarr
 from bio2zarr import vcf
+
 
 @contextmanager
 def open_vcf(path) -> Iterator[cyvcf2.VCF]:
@@ -226,12 +223,12 @@ def vcz_path_cache(vcf_path):
     return cached_vcz_path
 
 
-
 def convert_vcf_to_vcz(vcf_name, tmpdir):
     vcf_path = pathlib.Path("tests/data/vcf") / vcf_name
     output = (pathlib.Path(tmpdir) / vcf_path.name).with_suffix(".vcz")
     vcf.convert([vcf_path], output, worker_processes=0, local_alleles=False)
     return output
+
 
 def run_bcftools(args: str, expect_error=False) -> tuple[str, str]:
     """
@@ -247,6 +244,7 @@ def run_bcftools(args: str, expect_error=False) -> tuple[str, str]:
         assert completed.returncode == 0
     return completed.stdout.decode("utf-8"), completed.stderr.decode("utf-8")
 
+
 def run_vcztools(args: str, expect_error=False) -> tuple[str, str]:
     """Run run_vcztools and return stdout and stderr as a pair of strings."""
     runner = ct.CliRunner()
@@ -260,6 +258,7 @@ def run_vcztools(args: str, expect_error=False) -> tuple[str, str]:
     else:
         assert result.exit_code == 0
     return result.stdout, result.stderr
+
 
 def compare_vcf_and_vcz(tmp_path, vcf_args, vcf_file, vcz_args, vcz):
     original = pathlib.Path("tests/data/vcf") / vcf_file
@@ -287,7 +286,7 @@ def convert_vcf_to_vcz_icechunk(vcf_name, tmp_path):
     ic_tmp_path = tmp_path / "icechunk"
     ic_tmp_path.mkdir()
     output = (pathlib.Path(ic_tmp_path) / vcf_name).with_suffix(".vcz")
-    storage =  Storage.new_local_filesystem(str(output))
+    storage = Storage.new_local_filesystem(str(output))
     repo = Repository.create(storage=storage)
     session = repo.writable_session("main")
     dest = session.store
@@ -301,8 +300,9 @@ def convert_vcf_to_vcz_icechunk(vcf_name, tmp_path):
 
 # inspired by commit f3c123d3a2a94b7f14bc995e3897ee6acc9acbd1 in zarr-python
 def copy_store(source, dest):
-    from zarr.testing.stateful import SyncStoreWrapper
     from zarr.core.buffer.core import default_buffer_prototype
+    from zarr.testing.stateful import SyncStoreWrapper
+
     s = SyncStoreWrapper(source)
     d = SyncStoreWrapper(dest)
     # need reverse=True to create zarr.json before chunks (otherwise icechunk complains)

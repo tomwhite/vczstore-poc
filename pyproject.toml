@@ -47,3 +47,31 @@ dev = [
   "pytest",
   "vcztools",
 ]
+
+[tool.ruff]
+# Assume Python 3.10
+target-version = "py310"
+
+# Same as Black.
+line-length = 88
+indent-width = 4
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "W", "I", "N", "UP", "A", "PT"]
+#Allow uppercase names for e.g. call_AD
+#Don't add strict=False to zips (B905)
+ignore = ["N806", "N802", "N803", "A001", "A002", "B905", "RUF", "UP038"]
+
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.lint.isort]
+known-third-party = [
+  "bio2zarr",
+  "cyvcf2",
+  "numpy",
+  "pytest",
+  "setuptools",
+  "vcztools",
+  "zarr"
+]
