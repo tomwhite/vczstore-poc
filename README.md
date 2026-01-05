@@ -1,4 +1,4 @@
-Initial experiments to try different technologies for vczlib to support the OFH Zarr POC.
+Initial experiments to try different technologies for vczstore to support the OFH Zarr POC.
 
 ### Operations
 * Append to a Zarr store (atomically)
@@ -13,11 +13,12 @@ Initial experiments to try different technologies for vczlib to support the OFH 
 
 ```shell
 conda deactivate
-conda env remove -n vczlib-poc-zarr-v2
-conda create --name vczlib-poc-zarr-v2 -y 'python==3.12'
-conda activate vczlib-poc-zarr-v2
+conda env remove -n vczstore-poc-zarr-v2
+conda create --name vczstore-poc-zarr-v2 -y 'python==3.12'
+conda activate vczstore-poc-zarr-v2
 pip install -e '.[dev]'
-pip install -U -e ../vcztools  # delete-mask branch
+pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask'
+# pip install -U -e ../vcztools  # sample-mask branch
 pytest -vs
 ```
 

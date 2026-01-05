@@ -55,25 +55,25 @@ def remove(vcz, sample_id):
     if len(unknown_samples) > 0:
         raise ValueError(f"unrecognised sample: {sample_id}")
     selection = search(all_samples, sample_id)
-    sample_id_delete = np.zeros(all_samples.shape, dtype=bool)
-    sample_id_delete[selection] = True
+    sample_id_mask = np.zeros(all_samples.shape, dtype=bool)
+    sample_id_mask[selection] = True
 
-    # create or update the delete mask
+    # create or update the sample mask
     # TODO: the mask should be a part of bio2zarr eventually
-    if "sample_id_delete" not in root:
+    if "sample_id_mask" not in root:
         dimension_names = ["samples"]
         array = root.array(
-            "sample_id_delete",
-            data=sample_id_delete,
-            shape=sample_id_delete.shape,
-            chunks=sample_id_delete.shape,
-            dtype=sample_id_delete.dtype,
+            "sample_id_mask",
+            data=sample_id_mask,
+            shape=sample_id_mask.shape,
+            chunks=sample_id_mask.shape,
+            dtype=sample_id_mask.dtype,
             # TODO: compressor or codecs?
             # TODO: dimension_names for v3
         )
         array.attrs["_ARRAY_DIMENSIONS"] = dimension_names
     else:
-        root["sample_id_delete"] |= sample_id_delete
+        root["sample_id_mask"] |= sample_id_mask
 
     # overwrite sample data
     cubed_arrays = []
@@ -97,5 +97,5 @@ def remove(vcz, sample_id):
     # TODO: recalculate variant_AC, variant_AN
     # see _compute_info_fields in vcztools
 
-    # consolidate metadata (may not be needed if sample_id_delete was already present)
+    # consolidate metadata (may not be needed if sample_id_mask was already present)
     zarr.consolidate_metadata(vcz)

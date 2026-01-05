@@ -1,6 +1,6 @@
 import pytest
 
-from vczlib import remove
+from vczstore import remove
 
 from .utils import (
     compare_vcf_and_vcz,
@@ -21,7 +21,7 @@ def test_remove(tmp_path):
 
     remove(vcz, "NA00002")
 
-    # TODO: note following requires the delete-mask branch of vcztools
+    # TODO: note following requires the sample-mask branch of vcztools
 
     # check samples query
     vcztools_out, _ = run_vcztools(f"query -l {vcz}")
@@ -48,11 +48,11 @@ def test_remove_cubed(tmp_path):
     vcztools_out, _ = run_vcztools(f"query -l {vcz}")
     assert vcztools_out.strip() == "NA00001\nNA00002\nNA00003"
 
-    from vczlib.cubed_impl import remove as remove_2
+    from vczstore.cubed_impl import remove as remove_2
 
     remove_2(vcz, "NA00002")
 
-    # TODO: note following requires the delete-mask branch of vcztools
+    # TODO: note following requires the sample-mask branch of vcztools
 
     # check samples query
     vcztools_out, _ = run_vcztools(f"query -l {vcz}")

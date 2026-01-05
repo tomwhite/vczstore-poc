@@ -9,7 +9,7 @@
 
 import pytest
 
-from vczlib import append
+from vczstore import append
 
 from .utils import (
     compare_vcf_and_vcz,
@@ -53,7 +53,7 @@ def test_append_cubed(tmp_path):
     vcztools_out, _ = run_vcztools(f"query -l {vcz1}")
     assert vcztools_out.strip() == "NA00001\nNA00002"
 
-    from vczlib.cubed_impl import append as append_2
+    from vczstore.cubed_impl import append as append_2
 
     append_2(vcz1, vcz2)
 
