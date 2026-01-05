@@ -70,7 +70,7 @@ conda activate vczstore-poc-cubed-zarr-v2
 pip install -e '.[dev]'
 pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask'
 # pip install -U -e ../vcztools  # sample-mask branch
-pip install -U 'git+https://github.com/cubed-dev/cubed.git@update#egg=cubed[diagnostics]'
+pip install -U 'git+https://github.com/cubed-dev/cubed.git@update'
 # pip install -e '../cubed[diagnostics]' # update branch
 pytest -vs -k cubed
 ```
