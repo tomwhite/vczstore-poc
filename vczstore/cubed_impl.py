@@ -2,7 +2,7 @@ import cubed
 import numpy as np
 import zarr
 from cubed.array.update import append as cubed_append
-from cubed.array.update import set_ as cubed_set
+from cubed.array.update import set_scalar as cubed_set
 from vcztools.constants import FLOAT32_MISSING, INT_MISSING
 from vcztools.utils import search
 from vcztools.vcf_writer import dims
@@ -15,7 +15,7 @@ def append(vcz1, vcz2):
     cubed_arrays = []
 
     # append samples
-    sample_id1 = root1["sample_id"]
+    sample_id1 = cubed.from_zarr(vcz1, path="sample_id", mode="r+")
     sample_id2 = cubed.from_zarr(vcz2, path="sample_id")
     c = cubed_append(sample_id1, sample_id2, axis=0)
     cubed_arrays.append(c)
@@ -23,7 +23,7 @@ def append(vcz1, vcz2):
     # append genotype fields
     for var in root1.keys():
         if var.startswith("call_"):
-            arr = root1[var]
+            arr = cubed.from_zarr(vcz1, path=var, mode="r+")
             arr2 = cubed.from_zarr(vcz2, path=var)
             c = cubed_append(arr, arr2, axis=1)
             cubed_arrays.append(c)
