@@ -32,10 +32,10 @@ conda env remove -n vczstore-poc-zarr-v3
 conda create --name vczstore-poc-zarr-v3 -y 'python==3.12'
 conda activate vczstore-poc-zarr-v3
 pip install -e '.[dev]'
-pip install -U 'git+https://github.com/tomwhite/bio2zarr.git@zarr-python-v3-fix'
-pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask-zarr-python-v3-fix'
-# pip install -U -e ../bio2zarr  # zarr-python-v3-fix branch
-# pip install -U -e ../vcztools  # sample-mask-zarr-python-v3-fix branch
+pip install -U 'git+https://github.com/sgkit-dev/bio2zarr.git'
+pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask'
+# pip install -U -e ../bio2zarr  # main branch
+# pip install -U -e ../vcztools  # sample-mask branch
 pip install 'zarr>3'
 pytest -vs
 ```
@@ -50,12 +50,12 @@ conda env remove -n vczstore-poc-zarr-v3-f3
 conda create --name vczstore-poc-zarr-v3-f3 -y 'python==3.12'
 conda activate vczstore-poc-zarr-v3-f3
 pip install -e '.[dev]'
-pip install -U 'git+https://github.com/tomwhite/bio2zarr.git@zarr-python-v3-fix-zarr-format-3'
-pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask-zarr-python-v3-fix'
-# pip install -U -e ../bio2zarr  # zarr-python-v3-fix-zarr-format-3 branch
-# pip install -U -e ../vcztools  # sample-mask-zarr-python-v3-fix branch
+pip install -U 'git+https://github.com/tomwhite/bio2zarr.git@zarr-format-3'
+pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask'
+# pip install -U -e ../bio2zarr  # zarr-format-3 branch
+# pip install -U -e ../vcztools  # sample-mask branch
 pip install 'zarr>3'
-pytest -vs
+BIO2ZARR_ZARR_FORMAT=3 pytest -vs
 ```
 
 * Transactions: none
@@ -72,6 +72,7 @@ pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask'
 # pip install -U -e ../vcztools  # sample-mask branch
 pip install -U 'git+https://github.com/cubed-dev/cubed.git@update'
 # pip install -e '../cubed[diagnostics]' # update branch
+pip install rich
 pytest -vs -k cubed
 ```
 
@@ -85,10 +86,10 @@ conda env remove -n vczstore-poc-icechunk
 conda create --name vczstore-poc-icechunk -y 'python==3.12'
 conda activate vczstore-poc-icechunk
 pip install -e '.[dev]'
-pip install -U 'git+https://github.com/tomwhite/bio2zarr.git@zarr-python-v3-fix-zarr-format-3'
-pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask-zarr-python-v3-fix-icechunk'
-# pip install -U -e ../bio2zarr  # zarr-python-v3-fix-zarr-format-3 branch
-# pip install -U -e ../vcztools  # sample-mask-zarr-python-v3-fix-icechunk branch
+pip install -U 'git+https://github.com/tomwhite/bio2zarr.git@zarr-format-3'
+pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask-icechunk'
+# pip install -U -e ../bio2zarr  # zarr-format-3 branch
+# pip install -U -e ../vcztools  # sample-mask-icechunk branch
 pip install 'zarr>3' icechunk hypothesis
-pytest -vs -k icechunk
+BIO2ZARR_ZARR_FORMAT=3 pytest -vs -k icechunk
 ```
