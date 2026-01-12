@@ -76,6 +76,21 @@ pip install rich
 pytest -vs -k cubed
 ```
 
+* Transactions: none
+* Distributed: xarray
+* Zarr: v2
+
+```shell
+conda deactivate
+conda env remove -n vczstore-poc-xarray-zarr-v2
+conda create --name vczstore-poc-xarray-zarr-v2 -y 'python==3.12'
+conda activate vczstore-poc-xarray-zarr-v2
+pip install -e '.[dev]' xarray
+pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask'
+# pip install -U -e ../vcztools  # sample-mask branch
+pytest -vs -k xarray
+```
+
 * Transactions: icechunk
 * Distributed: single machine
 * Zarr: v3, format 3

@@ -67,6 +67,31 @@ def test_append_cubed(tmp_path):
     )
 
 
+def test_append_xarray(tmp_path):
+    pytest.importorskip("xarray")
+    from vczstore.xarray_impl import append
+
+    print(tmp_path)
+
+    vcz1 = convert_vcf_to_vcz("sample-part1.vcf.gz", tmp_path)
+    vcz2 = convert_vcf_to_vcz("sample-part2.vcf.gz", tmp_path)
+
+    # check samples query
+    vcztools_out, _ = run_vcztools(f"query -l {vcz1}")
+    assert vcztools_out.strip() == "NA00001\nNA00002"
+
+    append(vcz1, vcz2)
+
+    # check samples query
+    vcztools_out, _ = run_vcztools(f"query -l {vcz1}")
+    assert vcztools_out.strip() == "NA00001\nNA00002\nNA00003"
+
+    # check equivalence with original VCF
+    compare_vcf_and_vcz(
+        tmp_path, "view --no-version", "sample.vcf.gz", "view --no-version", vcz1
+    )
+
+
 def test_append_icechunk(tmp_path):
     pytest.importorskip("icechunk")
     from icechunk import Repository, Storage
