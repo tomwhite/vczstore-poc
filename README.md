@@ -50,7 +50,7 @@ conda env remove -n vczstore-poc-zarr-v3-f3
 conda create --name vczstore-poc-zarr-v3-f3 -y 'python==3.12'
 conda activate vczstore-poc-zarr-v3-f3
 pip install -e '.[dev]'
-pip install -U 'git+https://github.com/tomwhite/bio2zarr.git@zarr-format-3'
+pip install -U 'git+https://github.com/sgkit-dev/bio2zarr.git'
 pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask'
 # pip install -U -e ../bio2zarr  # zarr-format-3 branch
 # pip install -U -e ../vcztools  # sample-mask branch
@@ -86,7 +86,7 @@ conda env remove -n vczstore-poc-icechunk
 conda create --name vczstore-poc-icechunk -y 'python==3.12'
 conda activate vczstore-poc-icechunk
 pip install -e '.[dev]'
-pip install -U 'git+https://github.com/tomwhite/bio2zarr.git@zarr-format-3'
+pip install -U 'git+https://github.com/sgkit-dev/bio2zarr.git'
 pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask-icechunk'
 # pip install -U -e ../bio2zarr  # zarr-format-3 branch
 # pip install -U -e ../vcztools  # sample-mask-icechunk branch
