@@ -31,8 +31,12 @@ def append(vcz1, vcz2):
     # compute all arrays
     cubed.compute(*cubed_arrays, _return_in_memory_array=False)
 
-    # consolidate metadata
-    zarr.consolidate_metadata(vcz1)
+    # consolidate metadata (if supported)
+    try:
+        zarr.consolidate_metadata(vcz1)
+    except TypeError:
+        # store doesn't support consolidated metadata, that's OK
+        pass
 
 
 def missing_val(arr):
@@ -97,5 +101,9 @@ def remove(vcz, sample_id):
     # TODO: recalculate variant_AC, variant_AN
     # see _compute_info_fields in vcztools
 
-    # consolidate metadata (may not be needed if sample_id_mask was already present)
-    zarr.consolidate_metadata(vcz)
+    # consolidate metadata (if supported)
+    try:
+        zarr.consolidate_metadata(vcz)
+    except TypeError:
+        # store doesn't support consolidated metadata, that's OK
+        pass

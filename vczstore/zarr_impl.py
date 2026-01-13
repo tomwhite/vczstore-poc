@@ -5,7 +5,7 @@ from vcztools.utils import search
 from vcztools.vcf_writer import dims
 
 
-def append(vcz1, vcz2, consolidate_metadata=True):
+def append(vcz1, vcz2):
     """Append vcz2 to vcz1 in place"""
     root1 = zarr.open(vcz1, mode="r+")
     root2 = zarr.open(vcz2, mode="r")
@@ -36,9 +36,12 @@ def append(vcz1, vcz2, consolidate_metadata=True):
             else:
                 raise ValueError("unsupported number of dims")
 
-    # consolidate metadata
-    if consolidate_metadata:
+    # consolidate metadata (if supported)
+    try:
         zarr.consolidate_metadata(vcz1)
+    except TypeError:
+        # store doesn't support consolidated metadata, that's OK
+        pass
 
 
 def missing_val(arr):
@@ -52,7 +55,7 @@ def missing_val(arr):
         raise ValueError(f"unrecognised dtype: {arr.dtype}")
 
 
-def remove(vcz, sample_id, consolidate_metadata=True):
+def remove(vcz, sample_id):
     """Remove a sample from vcz and overwrite with missing data"""
     root = zarr.open(vcz, mode="r+")
     all_samples = root["sample_id"][:]
@@ -95,6 +98,9 @@ def remove(vcz, sample_id, consolidate_metadata=True):
     # TODO: recalculate variant_AC, variant_AN
     # see _compute_info_fields in vcztools
 
-    # consolidate metadata (may not be needed if sample_id_mask was already present)
-    if consolidate_metadata:
+    # consolidate metadata (if supported)
+    try:
         zarr.consolidate_metadata(vcz)
+    except TypeError:
+        # store doesn't support consolidated metadata, that's OK
+        pass

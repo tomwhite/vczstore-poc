@@ -94,7 +94,7 @@ def test_remove_icechunk(tmp_path):
     assert snapshots[1].message == "Repository initialized"
 
     with repo.transaction("main", message="append") as store:
-        zarr_impl_remove(store, "NA00002", consolidate_metadata=False)
+        zarr_impl_remove(store, "NA00002")
 
     delete_previous_snapshots(repo)
 
