@@ -12,6 +12,10 @@ import numpy as np
 import vcztools.cli as cli
 import zarr
 from bio2zarr import vcf
+from vcztools.utils import search
+from vcztools.vcf_writer import dims
+
+from vczstore.utils import missing_val
 
 
 @contextmanager
@@ -309,3 +313,24 @@ def copy_store(source, dest):
     for source_key in sorted(s.list(), reverse=True):
         buffer = s.get(source_key, default_buffer_prototype())
         d.set(source_key, buffer)
+
+
+def check_removed_sample(vcz, sample_id):
+    root = zarr.open(vcz)
+    all_samples = root["sample_id"][:]
+
+    # find index of sample to remove
+    unknown_samples = np.setdiff1d(sample_id, all_samples)
+    if len(unknown_samples) > 0:
+        raise ValueError(f"unrecognised sample: {sample_id}")
+    selection = search(all_samples, sample_id)
+
+    # overwrite sample data
+    for var in root.keys():
+        arr = root[var]
+        if (
+            var.startswith("call_")
+            and dims(arr)[0] == "variants"
+            and dims(arr)[1] == "samples"
+        ):
+            root[var][:, selection, ...] = missing_val(arr)
