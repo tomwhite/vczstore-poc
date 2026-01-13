@@ -1,6 +1,16 @@
 import pytest
 
-from vczstore import remove
+from vczstore.zarr_impl import remove as zarr_impl_remove
+
+try:
+    from vczstore.cubed_impl import remove as cubed_impl_remove
+except ImportError:
+    cubed_impl_remove = None
+
+try:
+    from vczstore.xarray_impl import remove as xarray_impl_remove
+except ImportError:
+    xarray_impl_remove = None
 
 from .utils import (
     check_removed_sample,
@@ -11,7 +21,27 @@ from .utils import (
 )
 
 
-def test_remove(tmp_path):
+@pytest.mark.parametrize(
+    "remove_function",
+    [
+        pytest.param(zarr_impl_remove, id="zarr_impl"),
+        pytest.param(
+            cubed_impl_remove,
+            id="cubed_impl",
+            marks=pytest.mark.skipif(
+                cubed_impl_remove is None, reason="requires cubed"
+            ),
+        ),
+        pytest.param(
+            xarray_impl_remove,
+            id="xarray_impl",
+            marks=pytest.mark.skipif(
+                xarray_impl_remove is None, reason="requires xarray"
+            ),
+        ),
+    ],
+)
+def test_remove(tmp_path, remove_function):
     print(tmp_path)
 
     vcz = convert_vcf_to_vcz("sample.vcf.gz", tmp_path)
@@ -20,74 +50,7 @@ def test_remove(tmp_path):
     vcztools_out, _ = run_vcztools(f"query -l {vcz}")
     assert vcztools_out.strip() == "NA00001\nNA00002\nNA00003"
 
-    remove(vcz, "NA00002")
-
-    # TODO: note following requires the sample-mask branch of vcztools
-
-    # check samples query
-    vcztools_out, _ = run_vcztools(f"query -l {vcz}")
-    assert vcztools_out.strip() == "NA00001\nNA00003"
-
-    # check equivalence with original VCF (with sample subsetting)
-    compare_vcf_and_vcz(
-        tmp_path,
-        "view --no-version -s NA00001,NA00003",
-        "sample.vcf.gz",
-        "view --no-version",
-        vcz,
-    )
-
-    # check sample values are missing
-    check_removed_sample(vcz, "NA00002")
-
-
-def test_remove_cubed(tmp_path):
-    pytest.importorskip("cubed")
-
-    print(tmp_path)
-
-    vcz = convert_vcf_to_vcz("sample.vcf.gz", tmp_path)
-
-    # check samples query
-    vcztools_out, _ = run_vcztools(f"query -l {vcz}")
-    assert vcztools_out.strip() == "NA00001\nNA00002\nNA00003"
-
-    from vczstore.cubed_impl import remove as remove_2
-
-    remove_2(vcz, "NA00002")
-
-    # TODO: note following requires the sample-mask branch of vcztools
-
-    # check samples query
-    vcztools_out, _ = run_vcztools(f"query -l {vcz}")
-    assert vcztools_out.strip() == "NA00001\nNA00003"
-
-    # check equivalence with original VCF (with sample subsetting)
-    compare_vcf_and_vcz(
-        tmp_path,
-        "view --no-version -s NA00001,NA00003",
-        "sample.vcf.gz",
-        "view --no-version",
-        vcz,
-    )
-
-    # check sample values are missing
-    check_removed_sample(vcz, "NA00002")
-
-
-def test_remove_xarray(tmp_path):
-    pytest.importorskip("xarray")
-    from vczstore.xarray_impl import remove
-
-    print(tmp_path)
-
-    vcz = convert_vcf_to_vcz("sample.vcf.gz", tmp_path)
-
-    # check samples query
-    vcztools_out, _ = run_vcztools(f"query -l {vcz}")
-    assert vcztools_out.strip() == "NA00001\nNA00002\nNA00003"
-
-    remove(vcz, "NA00002")
+    remove_function(vcz, "NA00002")
 
     # TODO: note following requires the sample-mask branch of vcztools
 
@@ -131,7 +94,7 @@ def test_remove_icechunk(tmp_path):
     assert snapshots[1].message == "Repository initialized"
 
     with repo.transaction("main", message="append") as store:
-        remove(store, "NA00002", consolidate_metadata=False)
+        zarr_impl_remove(store, "NA00002", consolidate_metadata=False)
 
     delete_previous_snapshots(repo)
 

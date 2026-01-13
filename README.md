@@ -7,6 +7,28 @@ Initial experiments to try different technologies for vczstore to support the OF
 
 ### Matrix testing
 
+All (quick)
+
+```shell
+conda activate vczstore-poc-zarr-v2
+pytest -vs
+
+conda activate vczstore-poc-zarr-v3
+pytest -vs
+
+conda activate vczstore-poc-zarr-v3-f3
+BIO2ZARR_ZARR_FORMAT=3 pytest -vs
+
+conda activate vczstore-poc-cubed-zarr-v2
+pytest -vs -k cubed
+
+conda activate vczstore-poc-xarray-zarr-v2
+pytest -vs -k xarray
+
+conda activate vczstore-poc-icechunk
+BIO2ZARR_ZARR_FORMAT=3 pytest -vs -k icechunk
+```
+
 * Transactions: none
 * Distributed: single machine
 * Zarr: v2
