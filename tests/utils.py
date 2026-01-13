@@ -333,4 +333,6 @@ def check_removed_sample(vcz, sample_id):
             and dims(arr)[0] == "variants"
             and dims(arr)[1] == "samples"
         ):
-            root[var][:, selection, ...] = missing_val(arr)
+            np.testing.assert_array_equal(
+                root[var][:, selection, ...], missing_val(arr)
+            )

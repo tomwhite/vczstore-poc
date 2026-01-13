@@ -37,6 +37,9 @@ def test_remove(tmp_path):
         vcz,
     )
 
+    # check sample values are missing
+    check_removed_sample(vcz, "NA00002")
+
 
 def test_remove_cubed(tmp_path):
     pytest.importorskip("cubed")
@@ -67,6 +70,9 @@ def test_remove_cubed(tmp_path):
         "view --no-version",
         vcz,
     )
+
+    # check sample values are missing
+    check_removed_sample(vcz, "NA00002")
 
 
 def test_remove_xarray(tmp_path):
@@ -147,3 +153,8 @@ def test_remove_icechunk(tmp_path):
         "view --no-version --zarr-backend-storage icechunk",
         vcz,
     )
+
+    # check sample values are missing
+    session = repo.readonly_session("main")
+    store = session.store
+    check_removed_sample(store, "NA00002")
