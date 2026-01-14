@@ -106,3 +106,52 @@ def test_append_icechunk(tmp_path):
         "view --no-version --zarr-backend-storage icechunk",
         vcz1,
     )
+
+
+def test_append_icechunk_cubed(tmp_path):
+    pytest.importorskip("icechunk")
+    pytest.importorskip("cubed")
+    from icechunk import Repository, Storage
+
+    from vczstore.cubed_impl import append as cubed_impl_append
+
+    print(tmp_path)
+
+    # note that vcz1 is in icechunk, but the dataset being appended, vcz2, needn't be
+    vcz1 = convert_vcf_to_vcz_icechunk("sample-part1.vcf.gz", tmp_path)
+    vcz2 = convert_vcf_to_vcz("sample-part2.vcf.gz", tmp_path)
+
+    print(vcz1)
+    print(vcz2)
+
+    # check samples query
+    vcztools_out, _ = run_vcztools(f"query -l {vcz1} --zarr-backend-storage icechunk")
+    assert vcztools_out.strip() == "NA00001\nNA00002"
+
+    icechunk_storage = Storage.new_local_filesystem(str(vcz1))
+    repo = Repository.open(icechunk_storage)
+
+    session = repo.writable_session("main")
+    fork = session.fork()
+    store = fork.store
+
+    from cubed import config
+
+    with config.set({"spec.executor_name": "processes"}):
+        merged_session = cubed_impl_append(store, vcz2, icechunk=True)
+
+    session.merge(merged_session)
+    session.commit("append")
+
+    # check samples query
+    vcztools_out, _ = run_vcztools(f"query -l {vcz1} --zarr-backend-storage icechunk")
+    assert vcztools_out.strip() == "NA00001\nNA00002\nNA00003"
+
+    # check equivalence with original VCF
+    compare_vcf_and_vcz(
+        tmp_path,
+        "view --no-version",
+        "sample.vcf.gz",
+        "view --no-version --zarr-backend-storage icechunk",
+        vcz1,
+    )

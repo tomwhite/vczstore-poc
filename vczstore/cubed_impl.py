@@ -8,16 +8,20 @@ from vcztools.utils import search
 from vcztools.vcf_writer import dims
 
 
-def append(vcz1, vcz2):
+def append(vcz1, vcz2, icechunk=False):
     """Append vcz2 to vcz1 in place"""
     root1 = zarr.open(vcz1, mode="r+")
 
     cubed_arrays = []
+    if icechunk:
+        blockwise_kwargs = dict(return_writes_stores=True)
+    else:
+        blockwise_kwargs = None
 
     # append samples
     sample_id1 = cubed.from_zarr(vcz1, path="sample_id", mode="r+")
     sample_id2 = cubed.from_zarr(vcz2, path="sample_id")
-    c = cubed_append(sample_id1, sample_id2, axis=0)
+    c = cubed_append(sample_id1, sample_id2, axis=0, blockwise_kwargs=blockwise_kwargs)
     cubed_arrays.append(c)
 
     # append genotype fields
@@ -25,11 +29,19 @@ def append(vcz1, vcz2):
         if var.startswith("call_"):
             arr = cubed.from_zarr(vcz1, path=var, mode="r+")
             arr2 = cubed.from_zarr(vcz2, path=var)
-            c = cubed_append(arr, arr2, axis=1)
+            c = cubed_append(arr, arr2, axis=1, blockwise_kwargs=blockwise_kwargs)
             cubed_arrays.append(c)
 
     # compute all arrays
-    cubed.compute(*cubed_arrays, _return_in_memory_array=False)
+    if icechunk:
+        from cubed.icechunk import IcechunkStoreCallback
+
+        store_callback = IcechunkStoreCallback()
+        callbacks = [store_callback]
+        cubed.compute(*cubed_arrays, _return_in_memory_array=False, callbacks=callbacks)
+        return store_callback.merged_sessions
+    else:
+        cubed.compute(*cubed_arrays, _return_in_memory_array=False)
 
     # consolidate metadata (if supported)
     try:
@@ -50,9 +62,14 @@ def missing_val(arr):
         raise ValueError(f"unrecognised dtype: {arr.dtype}")
 
 
-def remove(vcz, sample_id):
+def remove(vcz, sample_id, icechunk=False):
     root = zarr.open(vcz, mode="r+")
     all_samples = root["sample_id"][:]
+
+    if icechunk:
+        blockwise_kwargs = dict(return_writes_stores=True)
+    else:
+        blockwise_kwargs = None
 
     # find index of sample to remove
     unknown_samples = np.setdiff1d(sample_id, all_samples)
@@ -90,13 +107,24 @@ def remove(vcz, sample_id):
         ):
             cubed_arr = cubed.from_zarr(vcz, path=var, mode="r+")
             c = cubed_set(
-                cubed_arr, (slice(None), selection, Ellipsis), missing_val(arr)
+                cubed_arr,
+                (slice(None), selection, Ellipsis),
+                missing_val(arr),
+                blockwise_kwargs=blockwise_kwargs,
             )
             cubed_arrays.append(c)
             # root[var][:, selection, ...] = missing_val(arr)
 
     # compute all arrays
-    cubed.compute(*cubed_arrays, _return_in_memory_array=False)
+    if icechunk:
+        from cubed.icechunk import IcechunkStoreCallback
+
+        store_callback = IcechunkStoreCallback()
+        callbacks = [store_callback]
+        cubed.compute(*cubed_arrays, _return_in_memory_array=False, callbacks=callbacks)
+        return store_callback.merged_sessions
+    else:
+        cubed.compute(*cubed_arrays, _return_in_memory_array=False)
 
     # TODO: recalculate variant_AC, variant_AN
     # see _compute_info_fields in vcztools

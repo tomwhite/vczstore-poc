@@ -130,3 +130,24 @@ pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask-icechun
 pip install 'zarr>3' icechunk hypothesis
 BIO2ZARR_ZARR_FORMAT=3 pytest -vs -k icechunk
 ```
+
+* Transactions: icechunk
+* Distributed: cubed
+* Zarr: v3, format 3
+
+```shell
+conda deactivate
+conda env remove -n vczstore-poc-icechunk-cubed
+conda create --name vczstore-poc-icechunk-cubed -y 'python==3.12'
+conda activate vczstore-poc-icechunk-cubed
+pip install -e '.[dev]'
+pip install -U 'git+https://github.com/sgkit-dev/bio2zarr.git'
+pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask-icechunk'
+# pip install -U -e ../bio2zarr  # zarr-format-3 branch
+# pip install -U -e ../vcztools  # sample-mask-icechunk branch
+pip install 'zarr>3' icechunk hypothesis
+pip install -U 'git+https://github.com/cubed-dev/cubed.git@update'
+# pip install -e '../cubed[diagnostics]' # update branch
+pip install rich
+BIO2ZARR_ZARR_FORMAT=3 pytest -vs -k icechunk_cubed
+```

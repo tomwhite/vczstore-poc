@@ -121,3 +121,66 @@ def test_remove_icechunk(tmp_path):
     session = repo.readonly_session("main")
     store = session.store
     check_removed_sample(store, "NA00002")
+
+
+def test_remove_icechunk_cubed(tmp_path):
+    pytest.importorskip("icechunk")
+    pytest.importorskip("cubed")
+    from icechunk import Repository, Storage
+
+    from vczstore.cubed_impl import remove as cubed_impl_remove
+    from vczstore.icechunk_utils import delete_previous_snapshots
+
+    print(tmp_path)
+
+    vcz = convert_vcf_to_vcz_icechunk("sample.vcf.gz", tmp_path)
+
+    # check samples query
+    vcztools_out, _ = run_vcztools(f"query -l {vcz} --zarr-backend-storage icechunk")
+    assert vcztools_out.strip() == "NA00001\nNA00002\nNA00003"
+
+    icechunk_storage = Storage.new_local_filesystem(str(vcz))
+    repo = Repository.open(icechunk_storage)
+
+    snapshots = [snapshot for snapshot in repo.ancestry(branch="main")]
+    assert len(snapshots) == 2
+    assert snapshots[0].message == "commit 1"
+    assert snapshots[1].message == "Repository initialized"
+
+    session = repo.writable_session("main")
+    fork = session.fork()
+    store = fork.store
+
+    from cubed import config
+
+    with config.set({"spec.executor_name": "processes"}):
+        merged_session = cubed_impl_remove(store, "NA00002", icechunk=True)
+
+    session.merge(merged_session)
+    session.commit("append")
+
+    delete_previous_snapshots(repo)
+
+    snapshots = [snapshot for snapshot in repo.ancestry(branch="main")]
+    assert len(snapshots) == 2
+    # note that 'commit 1' has been deleted
+    assert snapshots[0].message == "append"
+    assert snapshots[1].message == "Repository initialized"
+
+    # check samples query
+    vcztools_out, _ = run_vcztools(f"query -l {vcz} --zarr-backend-storage icechunk")
+    assert vcztools_out.strip() == "NA00001\nNA00003"
+
+    # check equivalence with original VCF (with sample subsetting)
+    compare_vcf_and_vcz(
+        tmp_path,
+        "view --no-version -s NA00001,NA00003",
+        "sample.vcf.gz",
+        "view --no-version --zarr-backend-storage icechunk",
+        vcz,
+    )
+
+    # check sample values are missing
+    session = repo.readonly_session("main")
+    store = session.store
+    check_removed_sample(store, "NA00002")
