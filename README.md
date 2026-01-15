@@ -27,6 +27,9 @@ pytest -vs -k xarray
 
 conda activate vczstore-poc-icechunk
 BIO2ZARR_ZARR_FORMAT=3 pytest -vs -k icechunk
+
+conda activate vczstore-poc-icechunk-cubed
+BIO2ZARR_ZARR_FORMAT=3 pytest -vs -k icechunk_cubed
 ```
 
 * Transactions: none
