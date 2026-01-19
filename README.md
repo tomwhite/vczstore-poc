@@ -1,9 +1,26 @@
 Initial experiments to try different technologies for vczstore to support the OFH Zarr POC.
 
 ### Operations
+
 * Append to a Zarr store (atomically)
 * Delete values from a Zarr store (atomically)
 * Tag a Zarr store
+
+### Support matrix
+
+Using zarr-python directly (single machine)
+
+| zarr-python (format) | v2 (v2)            | v3 (v2)            | v3 (v3)            |
+|----------------------|--------------------|--------------------|--------------------|
+| **no transactions**  | :white_check_mark: | :white_check_mark: | :white_check_mark: |
+| **icechunk**         | N/A                | N/A                | :white_check_mark: |
+
+Using Cubed (distributed)
+
+| zarr-python (format) | v2 (v2)            | v3 (v2) | v3 (v3)            |
+|----------------------|--------------------|---------|--------------------|
+| **no transactions**  | :white_check_mark: | :x:     | :x:                |
+| **icechunk**         | N/A                | N/A     | :white_check_mark: |
 
 ### How to use
 
