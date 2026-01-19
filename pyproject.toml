@@ -8,7 +8,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "vczlib"
+name = "vczstore-poc"
 description = "Library for a VCF Zarr store"
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -16,6 +16,7 @@ authors = [
   {name = "sgkit Developers", email = "project@sgkit.dev"},
 ]
 dependencies = [
+  "click>=8.2.0",
   "numpy>=1.23.5,<2.4",
   "zarr>=2.17,<3",
 ]
@@ -38,7 +39,10 @@ classifiers = [
 dynamic = ["version"]
 
 [project.urls]
-repository = "https://github.com/sgkit-dev/vczlib"
+repository = "https://github.com/sgkit-dev/vczstore-poc"
+
+[project.scripts]
+vczstore = "vczstore.cli:vczstore_main"
 
 [project.optional-dependencies]
 dev = [

@@ -5,6 +5,60 @@ Initial experiments to try different technologies for vczstore to support the OF
 * Delete values from a Zarr store (atomically)
 * Tag a Zarr store
 
+### How to use
+
+* Transactions: none
+* Distributed: single machine
+* Zarr: v2
+
+```shell
+conda activate vczstore-poc-zarr-v2
+
+# Create some VCZ data
+rm -rf data
+mkdir data
+vcf2zarr convert tests/data/vcf/sample-part1.vcf.gz data/sample-part1.vcf.vcz
+vcf2zarr convert tests/data/vcf/sample-part2.vcf.gz data/sample-part2.vcf.vcz
+
+# Show the samples in each
+vcztools query -l data/sample-part1.vcf.vcz
+vcztools query -l data/sample-part2.vcf.vcz
+
+# Append data to the store
+vczstore append data/sample-part1.vcf.vcz data/sample-part2.vcf.vcz
+vcztools query -l data/sample-part1.vcf.vcz
+
+# Remove a sample from the store
+vczstore remove data/sample-part1.vcf.vcz NA00002
+vcztools query -l data/sample-part1.vcf.vcz
+```
+
+* Transactions: none
+* Distributed: cubed
+* Zarr: v2
+
+```shell
+conda activate vczstore-poc-cubed-zarr-v2
+
+# Create some VCZ data
+rm -rf data
+mkdir data
+vcf2zarr convert tests/data/vcf/sample-part1.vcf.gz data/sample-part1.vcf.vcz
+vcf2zarr convert tests/data/vcf/sample-part2.vcf.gz data/sample-part2.vcf.vcz
+
+# Show the samples in each
+vcztools query -l data/sample-part1.vcf.vcz
+vcztools query -l data/sample-part2.vcf.vcz
+
+# Append data to the store
+vczstore append --impl cubed data/sample-part1.vcf.vcz data/sample-part2.vcf.vcz
+vcztools query -l data/sample-part1.vcf.vcz
+
+# Remove a sample from the store
+vczstore remove --impl cubed data/sample-part1.vcf.vcz NA00002
+vcztools query -l data/sample-part1.vcf.vcz
+```
+
 ### Matrix testing
 
 All (quick)
