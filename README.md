@@ -34,20 +34,20 @@ conda activate vczstore-poc-zarr-v2
 # Create some VCZ data
 rm -rf data
 mkdir data
-vcf2zarr convert tests/data/vcf/sample-part1.vcf.gz data/sample-part1.vcf.vcz
+vcf2zarr convert tests/data/vcf/sample-part1.vcf.gz data/store.vcz
 vcf2zarr convert tests/data/vcf/sample-part2.vcf.gz data/sample-part2.vcf.vcz
 
 # Show the samples in each
-vcztools query -l data/sample-part1.vcf.vcz
+vcztools query -l data/store.vcz
 vcztools query -l data/sample-part2.vcf.vcz
 
 # Append data to the store
-vczstore append data/sample-part1.vcf.vcz data/sample-part2.vcf.vcz
-vcztools query -l data/sample-part1.vcf.vcz
+vczstore append data/store.vcz data/sample-part2.vcf.vcz
+vcztools query -l data/store.vcz
 
 # Remove a sample from the store
-vczstore remove data/sample-part1.vcf.vcz NA00002
-vcztools query -l data/sample-part1.vcf.vcz
+vczstore remove data/store.vcz NA00002
+vcztools query -l data/store.vcz
 ```
 
 * Transactions: none
@@ -60,20 +60,20 @@ conda activate vczstore-poc-cubed-zarr-v2
 # Create some VCZ data
 rm -rf data
 mkdir data
-vcf2zarr convert tests/data/vcf/sample-part1.vcf.gz data/sample-part1.vcf.vcz
+vcf2zarr convert tests/data/vcf/sample-part1.vcf.gz data/store.vcz
 vcf2zarr convert tests/data/vcf/sample-part2.vcf.gz data/sample-part2.vcf.vcz
 
 # Show the samples in each
-vcztools query -l data/sample-part1.vcf.vcz
+vcztools query -l data/store.vcz
 vcztools query -l data/sample-part2.vcf.vcz
 
 # Append data to the store
-vczstore append --impl cubed data/sample-part1.vcf.vcz data/sample-part2.vcf.vcz
-vcztools query -l data/sample-part1.vcf.vcz
+vczstore append --impl cubed data/store.vcz data/sample-part2.vcf.vcz
+vcztools query -l data/store.vcz
 
 # Remove a sample from the store
-vczstore remove --impl cubed data/sample-part1.vcf.vcz NA00002
-vcztools query -l data/sample-part1.vcf.vcz
+vczstore remove --impl cubed data/store.vcz NA00002
+vcztools query -l data/store.vcz
 ```
 
 * Transactions: icechunk
@@ -90,20 +90,20 @@ BIO2ZARR_ZARR_FORMAT=3 vcf2zarr convert tests/data/vcf/sample-part1.vcf.gz data/
 BIO2ZARR_ZARR_FORMAT=3 vcf2zarr convert tests/data/vcf/sample-part2.vcf.gz data/sample-part2.vcf.vcz
 
 # Copy first vcz to an icechunk store
-vczstore copy-store-to-icechunk data/sample-part1.vcf.vcz data/sample-part1.vcf.icechunk.vcz
+vczstore copy-store-to-icechunk data/sample-part1.vcf.vcz data/store.vcz
 rm -rf data/sample-part1.vcf.vcz
 
 # Show the samples in each
-vcztools query -l data/sample-part1.vcf.icechunk.vcz --zarr-backend-storage icechunk
+vcztools query -l data/store.vcz --zarr-backend-storage icechunk
 vcztools query -l data/sample-part2.vcf.vcz
 
 # Append data to the store
-vczstore append data/sample-part1.vcf.icechunk.vcz data/sample-part2.vcf.vcz --zarr-backend-storage icechunk
-vcztools query -l data/sample-part1.vcf.icechunk.vcz --zarr-backend-storage icechunk
+vczstore append data/store.vcz data/sample-part2.vcf.vcz --zarr-backend-storage icechunk
+vcztools query -l data/store.vcz --zarr-backend-storage icechunk
 
 # Remove a sample from the store
-vczstore remove data/sample-part1.vcf.icechunk.vcz NA00002 --zarr-backend-storage icechunk
-vcztools query -l data/sample-part1.vcf.icechunk.vcz --zarr-backend-storage icechunk
+vczstore remove data/store.vcz NA00002 --zarr-backend-storage icechunk
+vcztools query -l data/store.vcz --zarr-backend-storage icechunk
 ```
 
 ### Matrix testing
