@@ -14,8 +14,6 @@ import zarr
 from bio2zarr import vcf
 from vcztools.utils import search
 from vcztools.vcf_writer import dims
-from zarr.core.sync import sync
-from zarr.storage._common import make_store
 
 from vczstore.utils import missing_val
 
@@ -285,11 +283,11 @@ def compare_vcf_and_vcz(tmp_path, vcf_args, vcf_file, vcz_args, vcz):
 def convert_vcf_to_vcz_icechunk(vcf_name, tmp_path):
     from icechunk import Repository
 
-    from vczstore.icechunk_utils import make_icechunk_storage
+    from vczstore.icechunk_utils import copy_store, make_icechunk_storage
 
     vcz = convert_vcf_to_vcz(vcf_name, tmp_path)
 
-    source = sync(make_store(vcz))
+    source = vcz
 
     ic_tmp_path = tmp_path / "icechunk"
     ic_tmp_path.mkdir()
@@ -302,19 +300,6 @@ def convert_vcf_to_vcz_icechunk(vcf_name, tmp_path):
         copy_store(source, dest)
 
     return output
-
-
-# inspired by commit f3c123d3a2a94b7f14bc995e3897ee6acc9acbd1 in zarr-python
-def copy_store(source, dest):
-    from zarr.core.buffer.core import default_buffer_prototype
-    from zarr.testing.stateful import SyncStoreWrapper
-
-    s = SyncStoreWrapper(source)
-    d = SyncStoreWrapper(dest)
-    # need reverse=True to create zarr.json before chunks (otherwise icechunk complains)
-    for source_key in sorted(s.list(), reverse=True):
-        buffer = s.get(source_key, default_buffer_prototype())
-        d.set(source_key, buffer)
 
 
 def check_removed_sample(vcz, sample_id):
