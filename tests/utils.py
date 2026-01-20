@@ -296,7 +296,7 @@ def convert_vcf_to_vcz_icechunk(vcf_name, tmp_path):
     icechunk_storage = Storage.new_local_filesystem(str(output))
     repo = Repository.create(icechunk_storage)
 
-    with repo.transaction("main", message="commit 1") as dest:
+    with repo.transaction("main", message="create") as dest:
         copy_store(source, dest)
 
     return output

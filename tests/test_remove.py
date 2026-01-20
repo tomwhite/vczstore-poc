@@ -90,7 +90,7 @@ def test_remove_icechunk(tmp_path):
 
     snapshots = [snapshot for snapshot in repo.ancestry(branch="main")]
     assert len(snapshots) == 2
-    assert snapshots[0].message == "commit 1"
+    assert snapshots[0].message == "create"
     assert snapshots[1].message == "Repository initialized"
 
     with repo.transaction("main", message="append") as store:
@@ -100,7 +100,7 @@ def test_remove_icechunk(tmp_path):
 
     snapshots = [snapshot for snapshot in repo.ancestry(branch="main")]
     assert len(snapshots) == 2
-    # note that 'commit 1' has been deleted
+    # note that 'create' has been deleted
     assert snapshots[0].message == "append"
     assert snapshots[1].message == "Repository initialized"
 
@@ -144,7 +144,7 @@ def test_remove_icechunk_cubed(tmp_path):
 
     snapshots = [snapshot for snapshot in repo.ancestry(branch="main")]
     assert len(snapshots) == 2
-    assert snapshots[0].message == "commit 1"
+    assert snapshots[0].message == "create"
     assert snapshots[1].message == "Repository initialized"
 
     session = repo.writable_session("main")
@@ -163,7 +163,7 @@ def test_remove_icechunk_cubed(tmp_path):
 
     snapshots = [snapshot for snapshot in repo.ancestry(branch="main")]
     assert len(snapshots) == 2
-    # note that 'commit 1' has been deleted
+    # note that 'create' has been deleted
     assert snapshots[0].message == "append"
     assert snapshots[1].message == "Repository initialized"
 
