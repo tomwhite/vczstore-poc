@@ -73,7 +73,9 @@ def test_append(tmp_path, append_function):
 
 def test_append_icechunk(tmp_path):
     pytest.importorskip("icechunk")
-    from icechunk import Repository, Storage
+    from icechunk import Repository
+
+    from vczstore.icechunk_utils import make_icechunk_storage
 
     print(tmp_path)
 
@@ -88,7 +90,7 @@ def test_append_icechunk(tmp_path):
     vcztools_out, _ = run_vcztools(f"query -l {vcz1} --zarr-backend-storage icechunk")
     assert vcztools_out.strip() == "NA00001\nNA00002"
 
-    icechunk_storage = Storage.new_local_filesystem(str(vcz1))
+    icechunk_storage = make_icechunk_storage(vcz1)
     repo = Repository.open(icechunk_storage)
 
     with repo.transaction("main", message="append") as store:
@@ -111,9 +113,10 @@ def test_append_icechunk(tmp_path):
 def test_append_icechunk_cubed(tmp_path):
     pytest.importorskip("icechunk")
     pytest.importorskip("cubed")
-    from icechunk import Repository, Storage
+    from icechunk import Repository
 
     from vczstore.cubed_impl import append as cubed_impl_append
+    from vczstore.icechunk_utils import make_icechunk_storage
 
     print(tmp_path)
 
@@ -128,7 +131,7 @@ def test_append_icechunk_cubed(tmp_path):
     vcztools_out, _ = run_vcztools(f"query -l {vcz1} --zarr-backend-storage icechunk")
     assert vcztools_out.strip() == "NA00001\nNA00002"
 
-    icechunk_storage = Storage.new_local_filesystem(str(vcz1))
+    icechunk_storage = make_icechunk_storage(vcz1)
     repo = Repository.open(icechunk_storage)
 
     session = repo.writable_session("main")

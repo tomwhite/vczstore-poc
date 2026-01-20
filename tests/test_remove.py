@@ -73,9 +73,9 @@ def test_remove(tmp_path, remove_function):
 
 def test_remove_icechunk(tmp_path):
     pytest.importorskip("icechunk")
-    from icechunk import Repository, Storage
+    from icechunk import Repository
 
-    from vczstore.icechunk_utils import delete_previous_snapshots
+    from vczstore.icechunk_utils import delete_previous_snapshots, make_icechunk_storage
 
     print(tmp_path)
 
@@ -85,7 +85,7 @@ def test_remove_icechunk(tmp_path):
     vcztools_out, _ = run_vcztools(f"query -l {vcz} --zarr-backend-storage icechunk")
     assert vcztools_out.strip() == "NA00001\nNA00002\nNA00003"
 
-    icechunk_storage = Storage.new_local_filesystem(str(vcz))
+    icechunk_storage = make_icechunk_storage(vcz)
     repo = Repository.open(icechunk_storage)
 
     snapshots = [snapshot for snapshot in repo.ancestry(branch="main")]
@@ -126,10 +126,10 @@ def test_remove_icechunk(tmp_path):
 def test_remove_icechunk_cubed(tmp_path):
     pytest.importorskip("icechunk")
     pytest.importorskip("cubed")
-    from icechunk import Repository, Storage
+    from icechunk import Repository
 
     from vczstore.cubed_impl import remove as cubed_impl_remove
-    from vczstore.icechunk_utils import delete_previous_snapshots
+    from vczstore.icechunk_utils import delete_previous_snapshots, make_icechunk_storage
 
     print(tmp_path)
 
@@ -139,7 +139,7 @@ def test_remove_icechunk_cubed(tmp_path):
     vcztools_out, _ = run_vcztools(f"query -l {vcz} --zarr-backend-storage icechunk")
     assert vcztools_out.strip() == "NA00001\nNA00002\nNA00003"
 
-    icechunk_storage = Storage.new_local_filesystem(str(vcz))
+    icechunk_storage = make_icechunk_storage(vcz)
     repo = Repository.open(icechunk_storage)
 
     snapshots = [snapshot for snapshot in repo.ancestry(branch="main")]
