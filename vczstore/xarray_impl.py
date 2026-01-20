@@ -1,24 +1,14 @@
 import numpy as np
 import xarray as xr
-from vcztools.constants import FLOAT32_MISSING, INT_MISSING
 from vcztools.utils import search
+
+from vczstore.utils import missing_val
 
 
 def append(vcz1, vcz2):
     """Append vcz2 to vcz1 in place"""
     ds2 = xr.open_zarr(vcz2)
     ds2.to_zarr(vcz1, append_dim="samples")
-
-
-def missing_val(arr):
-    if arr.dtype.kind == "i":
-        return INT_MISSING
-    elif arr.dtype.kind == "f":
-        return FLOAT32_MISSING
-    elif arr.dtype.kind == "b":
-        return False
-    else:
-        raise ValueError(f"unrecognised dtype: {arr.dtype}")
 
 
 def remove(vcz, sample_id):

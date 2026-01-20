@@ -3,9 +3,10 @@ import numpy as np
 import zarr
 from cubed.array.update import append as cubed_append
 from cubed.array.update import set_scalar as cubed_set
-from vcztools.constants import FLOAT32_MISSING, INT_MISSING
 from vcztools.utils import search
 from vcztools.vcf_writer import dims
+
+from vczstore.utils import missing_val
 
 
 def append(vcz1, vcz2, icechunk=False):
@@ -49,17 +50,6 @@ def append(vcz1, vcz2, icechunk=False):
     except TypeError:
         # store doesn't support consolidated metadata, that's OK
         pass
-
-
-def missing_val(arr):
-    if arr.dtype.kind == "i":
-        return INT_MISSING
-    elif arr.dtype.kind == "f":
-        return FLOAT32_MISSING
-    elif arr.dtype.kind == "b":
-        return False
-    else:
-        raise ValueError(f"unrecognised dtype: {arr.dtype}")
 
 
 def remove(vcz, sample_id, icechunk=False):
