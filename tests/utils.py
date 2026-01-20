@@ -14,6 +14,8 @@ import zarr
 from bio2zarr import vcf
 from vcztools.utils import search
 from vcztools.vcf_writer import dims
+from zarr.core.sync import sync
+from zarr.storage._common import make_store
 
 from vczstore.utils import missing_val
 
@@ -285,7 +287,7 @@ def convert_vcf_to_vcz_icechunk(vcf_name, tmp_path):
 
     vcz = convert_vcf_to_vcz(vcf_name, tmp_path)
 
-    source = zarr.storage.LocalStore(vcz)
+    source = sync(make_store(vcz))
 
     ic_tmp_path = tmp_path / "icechunk"
     ic_tmp_path.mkdir()
