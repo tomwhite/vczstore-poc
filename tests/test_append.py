@@ -73,9 +73,7 @@ def test_append(tmp_path, append_function):
 
 def test_append_icechunk(tmp_path):
     pytest.importorskip("icechunk")
-    from icechunk import Repository
-
-    from vczstore.icechunk_utils import make_icechunk_storage
+    from vczstore.icechunk_utils import icechunk_transaction
 
     print(tmp_path)
 
@@ -90,10 +88,7 @@ def test_append_icechunk(tmp_path):
     vcztools_out, _ = run_vcztools(f"query -l {vcz1} --zarr-backend-storage icechunk")
     assert vcztools_out.strip() == "NA00001\nNA00002"
 
-    icechunk_storage = make_icechunk_storage(vcz1)
-    repo = Repository.open(icechunk_storage)
-
-    with repo.transaction("main", message="append") as store:
+    with icechunk_transaction(vcz1, "main", message="append") as store:
         zarr_impl_append(store, vcz2)
 
     # check samples query

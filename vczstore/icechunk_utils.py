@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -59,7 +60,7 @@ def copy_store(source, dest):
 
 
 def copy_store_to_icechunk(source, dest):
-    """Copy a Zarr store to a new icechunk store."""
+    """Copy a Zarr store to a new Icechunk store."""
     from icechunk import Repository
 
     icechunk_storage = make_icechunk_storage(dest)
@@ -67,3 +68,15 @@ def copy_store_to_icechunk(source, dest):
 
     with repo.transaction("main", message="create") as dest:
         copy_store(source, dest)
+
+
+@contextmanager
+def icechunk_transaction(file_or_url, branch, *, message="update"):
+    """Open an Icechunk store in a transaction, then commit on completion."""
+    from icechunk import Repository
+
+    icechunk_storage = make_icechunk_storage(file_or_url)
+    repo = Repository.open(icechunk_storage)
+
+    with repo.transaction(branch, message=message) as store:
+        yield store
