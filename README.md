@@ -26,7 +26,7 @@ Using Cubed (distributed)
 | **no transactions**  | :white_check_mark: | :x:     | :x:                |
 | **icechunk**         | N/A                | N/A     | :white_check_mark: |
 
-In addition the following features are not yet supported:
+In addition the following things are missing or not yet supported:
 
 * Error checking (e.g. that the store and the vcz being appended have compatible fields)
 * Allele harmonisation
