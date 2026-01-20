@@ -1,9 +1,13 @@
-Initial experiments to try different technologies for vczstore to support the OFH Zarr POC.
+# vczstore
+
+Initial experiments to try different technologies for a vczstore POC.
 
 ### Operations
 
+The key operations we want to support are:
+
 * Append to a Zarr store (atomically)
-* Delete values from a Zarr store (atomically)
+* Remove values from a Zarr store (atomically)
 * Tag a Zarr store
 
 ### Support matrix
@@ -22,7 +26,13 @@ Using Cubed (distributed)
 | **no transactions**  | :white_check_mark: | :x:     | :x:                |
 | **icechunk**         | N/A                | N/A     | :white_check_mark: |
 
-### How to use
+In addition the following features are not yet supported:
+
+* Error checking (e.g. that the store and the vcz being appended have compatible fields)
+* Allele harmonisation
+* Cloud stores
+
+### Demo
 
 * Transactions: none
 * Distributed: single machine
