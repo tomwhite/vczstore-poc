@@ -292,14 +292,12 @@ def convert_vcf_to_vcz_icechunk(vcf_name, tmp_path):
     ic_tmp_path = tmp_path / "icechunk"
     ic_tmp_path.mkdir()
     output = (pathlib.Path(ic_tmp_path) / vcf_name).with_suffix(".vcz")
-    storage = Storage.new_local_filesystem(str(output))
-    repo = Repository.create(storage=storage)
-    session = repo.writable_session("main")
-    dest = session.store
 
-    copy_store(source, dest)
+    icechunk_storage = Storage.new_local_filesystem(str(output))
+    repo = Repository.create(icechunk_storage)
 
-    session.commit("commit 1")
+    with repo.transaction("main", message="commit 1") as dest:
+        copy_store(source, dest)
 
     return output
 
