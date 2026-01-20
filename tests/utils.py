@@ -281,23 +281,15 @@ def compare_vcf_and_vcz(tmp_path, vcf_args, vcf_file, vcz_args, vcz):
 
 
 def convert_vcf_to_vcz_icechunk(vcf_name, tmp_path):
-    from icechunk import Repository
-
-    from vczstore.icechunk_utils import copy_store, make_icechunk_storage
+    from vczstore.icechunk_utils import copy_store_to_icechunk
 
     vcz = convert_vcf_to_vcz(vcf_name, tmp_path)
-
-    source = vcz
 
     ic_tmp_path = tmp_path / "icechunk"
     ic_tmp_path.mkdir()
     output = (pathlib.Path(ic_tmp_path) / vcf_name).with_suffix(".vcz")
 
-    icechunk_storage = make_icechunk_storage(output)
-    repo = Repository.create(icechunk_storage)
-
-    with repo.transaction("main", message="create") as dest:
-        copy_store(source, dest)
+    copy_store_to_icechunk(vcz, output)
 
     return output
 
