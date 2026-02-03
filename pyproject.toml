@@ -71,11 +71,11 @@ unfixable = []
 
 [tool.ruff.lint.isort]
 known-third-party = [
-  "bio2zarr",
+  "git+https://github.com/sgkit-dev/bio2zarr.git",
   "cyvcf2",
   "numpy",
   "pytest",
   "setuptools",
-  "vcztools",
+  "git+https://github.com/tomwhite/vcztools.git@sample-mask",
   "zarr"
 ]
