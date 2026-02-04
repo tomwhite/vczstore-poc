@@ -12,7 +12,7 @@ import numpy as np
 import zarr
 
 from vczstore.allele_harmonisation import harmonise_alleles
-from vczstore.zarr_impl import append_harmonise, dims
+from vczstore.zarr_impl import append_harmonise
 
 from .utils import (
     compare_vcf_and_vcz,
@@ -58,23 +58,3 @@ def test_append_harmonise(tmp_path):
         "view --no-version",
         vcz1,
     )
-
-
-def test_find_allele_arrays():
-    vcz = "sample.vcf.vcz"
-
-    root = zarr.open(vcz, mode="r")
-    for var in root.keys():
-        arr = root[var]
-        if "alleles" in dims(arr):
-            print(var, dims(arr))
-
-
-def test_find_samples_arrays():
-    vcz = "sample-part1.vcf.vcz"
-
-    root = zarr.open(vcz, mode="r")
-    for var in root.keys():
-        arr = root[var]
-        if "samples" in dims(arr):
-            print(var, dims(arr))
