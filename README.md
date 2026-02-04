@@ -19,13 +19,6 @@ Using zarr-python directly (single machine)
 | **no transactions**  | :white_check_mark: | :white_check_mark: | :white_check_mark: |
 | **icechunk**         | N/A                | N/A                | :white_check_mark: |
 
-Using Cubed (distributed)
-
-| zarr-python (format) | v2 (v2)            | v3 (v2) | v3 (v3)            |
-|----------------------|--------------------|---------|--------------------|
-| **no transactions**  | :white_check_mark: | :x:     | :x:                |
-| **icechunk**         | N/A                | N/A     | :white_check_mark: |
-
 In addition the following things are missing or not yet supported:
 
 * Error checking (e.g. that the store and the vcz being appended have compatible fields)
@@ -57,32 +50,6 @@ vcztools query -l data/store.vcz
 
 # Remove a sample from the store
 vczstore remove data/store.vcz NA00002
-vcztools query -l data/store.vcz
-```
-
-* Transactions: none
-* Distributed: cubed
-* Zarr: v2
-
-```shell
-conda activate vczstore-poc-cubed-zarr-v2
-
-# Create some VCZ data
-rm -rf data
-mkdir data
-vcf2zarr convert tests/data/vcf/sample-part1.vcf.gz data/store.vcz
-vcf2zarr convert tests/data/vcf/sample-part2.vcf.gz data/sample-part2.vcf.vcz
-
-# Show the samples in each
-vcztools query -l data/store.vcz
-vcztools query -l data/sample-part2.vcf.vcz
-
-# Append data to the store
-vczstore append --impl cubed data/store.vcz data/sample-part2.vcf.vcz
-vcztools query -l data/store.vcz
-
-# Remove a sample from the store
-vczstore remove --impl cubed data/store.vcz NA00002
 vcztools query -l data/store.vcz
 ```
 
@@ -130,17 +97,8 @@ pytest -vs
 conda activate vczstore-poc-zarr-v3-f3
 BIO2ZARR_ZARR_FORMAT=3 pytest -vs
 
-conda activate vczstore-poc-cubed-zarr-v2
-pytest -vs -k cubed
-
-conda activate vczstore-poc-xarray-zarr-v2
-pytest -vs -k xarray
-
 conda activate vczstore-poc-icechunk
 BIO2ZARR_ZARR_FORMAT=3 pytest -vs -k icechunk
-
-conda activate vczstore-poc-icechunk-cubed
-BIO2ZARR_ZARR_FORMAT=3 pytest -vs -k icechunk_cubed
 ```
 
 * Transactions: none
@@ -194,6 +152,67 @@ pip install 'zarr>3'
 BIO2ZARR_ZARR_FORMAT=3 pytest -vs
 ```
 
+* Transactions: icechunk
+* Distributed: single machine
+* Zarr: v3, format 3
+
+```shell
+conda deactivate
+conda env remove -n vczstore-poc-icechunk
+conda create --name vczstore-poc-icechunk -y 'python==3.12'
+conda activate vczstore-poc-icechunk
+pip install -e '.[dev]'
+pip install -U 'git+https://github.com/sgkit-dev/bio2zarr.git'
+pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask-icechunk'
+# pip install -U -e ../bio2zarr  # zarr-format-3 branch
+# pip install -U -e ../vcztools  # sample-mask-icechunk branch
+pip install 'zarr>3' icechunk hypothesis
+BIO2ZARR_ZARR_FORMAT=3 pytest -vs -k icechunk
+```
+
+### Deprecated
+
+Things that are not being worked on currently for the POC
+
+#### Support matrix
+
+Using Cubed (distributed)
+
+| zarr-python (format) | v2 (v2)            | v3 (v2) | v3 (v3)            |
+|----------------------|--------------------|---------|--------------------|
+| **no transactions**  | :white_check_mark: | :x:     | :x:                |
+| **icechunk**         | N/A                | N/A     | :white_check_mark: |
+
+#### Demo
+
+* Transactions: none
+* Distributed: cubed
+* Zarr: v2
+
+```shell
+conda activate vczstore-poc-cubed-zarr-v2
+
+# Create some VCZ data
+rm -rf data
+mkdir data
+vcf2zarr convert tests/data/vcf/sample-part1.vcf.gz data/store.vcz
+vcf2zarr convert tests/data/vcf/sample-part2.vcf.gz data/sample-part2.vcf.vcz
+
+# Show the samples in each
+vcztools query -l data/store.vcz
+vcztools query -l data/sample-part2.vcf.vcz
+
+# Append data to the store
+vczstore append --impl cubed data/store.vcz data/sample-part2.vcf.vcz
+vcztools query -l data/store.vcz
+
+# Remove a sample from the store
+vczstore remove --impl cubed data/store.vcz NA00002
+vcztools query -l data/store.vcz
+```
+
+#### Matrix testing
+
 * Transactions: none
 * Distributed: cubed
 * Zarr: v2
@@ -225,24 +244,6 @@ pip install -e '.[dev]' xarray
 pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask'
 # pip install -U -e ../vcztools  # sample-mask branch
 pytest -vs -k xarray
-```
-
-* Transactions: icechunk
-* Distributed: single machine
-* Zarr: v3, format 3
-
-```shell
-conda deactivate
-conda env remove -n vczstore-poc-icechunk
-conda create --name vczstore-poc-icechunk -y 'python==3.12'
-conda activate vczstore-poc-icechunk
-pip install -e '.[dev]'
-pip install -U 'git+https://github.com/sgkit-dev/bio2zarr.git'
-pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask-icechunk'
-# pip install -U -e ../bio2zarr  # zarr-format-3 branch
-# pip install -U -e ../vcztools  # sample-mask-icechunk branch
-pip install 'zarr>3' icechunk hypothesis
-BIO2ZARR_ZARR_FORMAT=3 pytest -vs -k icechunk
 ```
 
 * Transactions: icechunk
