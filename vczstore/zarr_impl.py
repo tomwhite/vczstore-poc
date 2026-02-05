@@ -112,27 +112,9 @@ def remove(vcz, sample_id):
     if len(unknown_samples) > 0:
         raise ValueError(f"unrecognised sample: {sample_id}")
     selection = search(all_samples, sample_id)
-    sample_id_mask = np.zeros(all_samples.shape, dtype=bool)
-    sample_id_mask[selection] = True
-
-    # create or update the sample mask
-    # TODO: the mask should be a part of bio2zarr eventually
-    if "sample_id_mask" not in root:
-        dimension_names = ["samples"]
-        array = root.array(
-            "sample_id_mask",
-            data=sample_id_mask,
-            shape=sample_id_mask.shape,
-            chunks=sample_id_mask.shape,
-            dtype=sample_id_mask.dtype,
-            # TODO: compressor or codecs?
-            # TODO: dimension_names for v3
-        )
-        array.attrs["_ARRAY_DIMENSIONS"] = dimension_names
-    else:
-        root["sample_id_mask"] |= sample_id_mask
 
     # overwrite sample data
+    root["sample_id"][selection] = ""
     for var in root.keys():
         arr = root[var]
         if (

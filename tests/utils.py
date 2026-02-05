@@ -12,7 +12,6 @@ import numpy as np
 import vcztools.cli as cli
 import zarr
 from bio2zarr import vcf
-from vcztools.utils import search
 from vcztools.vcf_writer import dims
 
 from vczstore.utils import missing_val
@@ -298,13 +297,13 @@ def check_removed_sample(vcz, sample_id):
     root = zarr.open(vcz)
     all_samples = root["sample_id"][:]
 
-    # find index of sample to remove
-    unknown_samples = np.setdiff1d(sample_id, all_samples)
-    if len(unknown_samples) > 0:
-        raise ValueError(f"unrecognised sample: {sample_id}")
-    selection = search(all_samples, sample_id)
+    # check removed sample is not present in sample_id array
+    assert sample_id not in all_samples
 
-    # overwrite sample data
+    # find indexes of removed samples
+    selection = all_samples == ""
+
+    # and check all genotype arrays have missing values for those samples
     for var in root.keys():
         arr = root[var]
         if (
@@ -313,5 +312,5 @@ def check_removed_sample(vcz, sample_id):
             and dims(arr)[1] == "samples"
         ):
             np.testing.assert_array_equal(
-                root[var][:, selection, ...], missing_val(arr)
+                root[var][:][:, selection, ...], missing_val(arr)
             )
