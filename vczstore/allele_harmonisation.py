@@ -2,55 +2,77 @@ import numpy as np
 from vcztools.utils import search
 
 
-def harmonise_alleles(variant_allele1, variant_allele2):
-    n_variants = variant_allele1.shape[0]
-    # TODO: check variant_allele2 has the same number of variants
+def harmonise_alleles(variant_allele, variant_allele_new):
+    """
+    Harmonise alleles at each variant site.
+
+    Returns two arrays:
+
+    ``variant_allele_updated``: a ``variant_allele`` array such that each
+    variant site contains the union of the alleles in ``variant_allele``
+    and ``variant_allele_new``
+
+    ``variant_allele_new_mapping``: an int array with the same shape as
+    ``variant_allele_new`` where each value is an index into the allele in
+    ``variant_allele_updated``. This is similar to the local alleles
+    ``LAA`` field in VCF 4.5 with an extra leading column (which is always
+    zero since REF is unchanged).
+    """
+    n_variants = variant_allele.shape[0]
+    n_variants_new = variant_allele_new.shape[0]
+
+    if n_variants != n_variants_new:
+        raise ValueError(
+            f"Different number of variants: store has {n_variants} variants, "
+            f"but appended data has {n_variants_new}"
+        )
 
     # first find new max alleles
     max_alt_alleles = 0
     for i in range(n_variants):
-        alt1 = variant_allele1[i][1:]
-        alt2 = variant_allele2[i][1:]
-        # for each alt allele in alt2
-        new_alleles = np.setdiff1d(alt2, alt1)
-        max_alt_alleles = max(len(alt1) + len(new_alleles), max_alt_alleles)
+        alt = variant_allele[i][1:]
+        alt_new = variant_allele_new[i][1:]
+        # for each alt allele in alt_new
+        new_alleles = np.setdiff1d(alt_new, alt)
+        max_alt_alleles = max(len(alt) + len(new_alleles), max_alt_alleles)
     max_alleles = max_alt_alleles + 1
 
-    variant_allele1_updated = np.empty(
-        (n_variants, max_alleles), dtype=variant_allele1.dtype
+    variant_allele_updated = np.full(
+        (n_variants, max_alleles), fill_value="", dtype=variant_allele.dtype
     )
-    variant_allele2_mapping = np.zeros(
-        (n_variants, variant_allele2.shape[1]), dtype=np.int64
+    variant_allele_new_mapping = np.full(
+        (n_variants, variant_allele_new.shape[1]), fill_value=-2, dtype=np.int64
     )
 
     for i in range(n_variants):
-        ref1 = variant_allele1[i][0]
-        ref2 = variant_allele2[i][0]
+        ref = variant_allele[i][0]
+        ref_new = variant_allele_new[i][0]
 
-        if ref1 != ref2:
-            raise ValueError("References must be the same when appending")
+        if ref != ref_new:
+            # TODO: would be more useful to have chr/pos/id in message
+            raise ValueError(
+                f"References don't match at index {i}: store is '{ref}', "
+                f"but appended data is '{ref_new}'"
+            )
 
-        alt1 = variant_allele1[i][1:]
-        alt2 = variant_allele2[i][1:]
+        alt = variant_allele[i][1:]
+        alt_new = variant_allele_new[i][1:]
 
-        if np.all(alt1 == alt2):
-            # TODO: need to pad with fill
-            variant_allele1_updated[i] = variant_allele1[i]
+        # for each alt allele in alt_new
+        new_alleles = np.setdiff1d(alt_new, alt)
+        updated = np.append(variant_allele[i], new_alleles, axis=0)
+        variant_allele_updated[i][: updated.shape[0]] = updated
 
-        else:
-            # for each alt allele in alt2
-            new_alleles = np.setdiff1d(alt2, alt1)
-            updated = np.append(variant_allele1[i], new_alleles, axis=0)
-            # TODO: need to pad with fill
-            variant_allele1_updated[i] = updated
+        # remove fill values at end of array
+        variant_allele_new_no_fill = variant_allele_new[i][variant_allele_new[i] != ""]
+        mapping = search(updated, variant_allele_new_no_fill)
+        variant_allele_new_mapping[i][: variant_allele_new_no_fill.shape[0]] = mapping
 
-            mapping = search(updated, variant_allele2)
-            variant_allele2_mapping[i] = mapping
-
-    return variant_allele1_updated, variant_allele2_mapping
+    return variant_allele_updated, variant_allele_new_mapping
 
 
-def remap_gt(gt, variant_allele_mapping):
+def remap_gt(gt, variant_allele_new_mapping):
+    """Update a genotype array in-place using a mapping from ``harmonise_alleles``."""
     num_variants = gt.shape[0]
     num_samples = gt.shape[1]
     ploidy = gt.shape[2]
@@ -59,5 +81,4 @@ def remap_gt(gt, variant_allele_mapping):
             for k in range(ploidy):
                 val = gt[i, j, k]
                 if val >= 0:
-                    gt[i, j, k] = variant_allele_mapping[i, val]
-    return gt
+                    gt[i, j, k] = variant_allele_new_mapping[i, val]

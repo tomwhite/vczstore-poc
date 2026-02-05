@@ -46,7 +46,7 @@ def append(vcz1, vcz2):
         pass
 
 
-def append_harmonise(vcz1, vcz2, consolidate_metadata=True):
+def append_harmonise(vcz1, vcz2):
     """Append vcz2 to vcz1 in place, harmonising alleles"""
     root1 = zarr.open(vcz1, mode="r+")
     # TODO: we'll update vcz2 in place to fix alleles (not sure this is OK?)
@@ -63,13 +63,13 @@ def append_harmonise(vcz1, vcz2, consolidate_metadata=True):
     sample_id1[old_num_samples:new_num_samples] = sample_id2[:]
 
     # harmonise alleles
-    variant_allele1 = root1["variant_allele"]
-    variant_allele2 = root2["variant_allele"]
-    variant_allele1_updated, variant_allele2_mapping = harmonise_alleles(
-        variant_allele1, variant_allele2
+    variant_allele = root1["variant_allele"]
+    variant_allele_new = root2["variant_allele"]
+    variant_allele_updated, variant_allele_new_mapping = harmonise_alleles(
+        variant_allele, variant_allele_new
     )
-    variant_allele1.resize(variant_allele1_updated.shape)
-    variant_allele1[:] = variant_allele1_updated
+    variant_allele.resize(variant_allele_updated.shape)
+    variant_allele[:] = variant_allele_updated
 
     # append genotype fields
 
@@ -79,11 +79,11 @@ def append_harmonise(vcz1, vcz2, consolidate_metadata=True):
             new_shape = (arr.shape[0], new_num_samples, arr.shape[2])
             arr.resize(new_shape)
 
-            # TODO: consider case where ploidy dim needs reszing (expanding)
+            # TODO: consider case where ploidy dim needs resizing (expanding)
             gt = root2[var][:]
-            remapped_gt = remap_gt(gt, variant_allele2_mapping)
+            remap_gt(gt, variant_allele_new_mapping)
 
-            arr[:, old_num_samples:new_num_samples, :] = remapped_gt
+            arr[:, old_num_samples:new_num_samples, :] = gt
         elif var.startswith("call_"):
             arr = root1[var]
             if arr.ndim == 2:
@@ -97,9 +97,12 @@ def append_harmonise(vcz1, vcz2, consolidate_metadata=True):
             else:
                 raise ValueError("unsupported number of dims")
 
-    # consolidate metadata
-    if consolidate_metadata:
+    # consolidate metadata (if supported)
+    try:
         zarr.consolidate_metadata(vcz1)
+    except TypeError:
+        # store doesn't support consolidated metadata, that's OK
+        pass
 
 
 def remove(vcz, sample_id):
