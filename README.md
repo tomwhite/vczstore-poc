@@ -111,7 +111,7 @@ conda env remove -n vczstore-poc-zarr-v2
 conda create --name vczstore-poc-zarr-v2 -y 'python==3.12'
 conda activate vczstore-poc-zarr-v2
 pip install -e '.[dev]'
-pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask'
+pip install -U 'git+https://github.com/sgkit-dev/vcztools.git'
 # pip install -U -e ../vcztools  # sample-mask branch
 pytest -vs
 ```
@@ -127,7 +127,7 @@ conda create --name vczstore-poc-zarr-v3 -y 'python==3.12'
 conda activate vczstore-poc-zarr-v3
 pip install -e '.[dev]'
 pip install -U 'git+https://github.com/sgkit-dev/bio2zarr.git'
-pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask'
+pip install -U 'git+https://github.com/sgkit-dev/vcztools.git'
 # pip install -U -e ../bio2zarr  # main branch
 # pip install -U -e ../vcztools  # sample-mask branch
 pip install 'zarr>3'
@@ -145,7 +145,7 @@ conda create --name vczstore-poc-zarr-v3-f3 -y 'python==3.12'
 conda activate vczstore-poc-zarr-v3-f3
 pip install -e '.[dev]'
 pip install -U 'git+https://github.com/sgkit-dev/bio2zarr.git'
-pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask'
+pip install -U 'git+https://github.com/sgkit-dev/vcztools.git'
 # pip install -U -e ../bio2zarr  # zarr-format-3 branch
 # pip install -U -e ../vcztools  # sample-mask branch
 pip install 'zarr>3'
@@ -163,7 +163,7 @@ conda create --name vczstore-poc-icechunk -y 'python==3.12'
 conda activate vczstore-poc-icechunk
 pip install -e '.[dev]'
 pip install -U 'git+https://github.com/sgkit-dev/bio2zarr.git'
-pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask-icechunk'
+pip install -U 'git+https://github.com/sgkit-dev/vcztools.git'
 # pip install -U -e ../bio2zarr  # zarr-format-3 branch
 # pip install -U -e ../vcztools  # sample-mask-icechunk branch
 pip install 'zarr>3' icechunk hypothesis
@@ -223,7 +223,7 @@ conda env remove -n vczstore-poc-cubed-zarr-v2
 conda create --name vczstore-poc-cubed-zarr-v2 -y 'python==3.12'
 conda activate vczstore-poc-cubed-zarr-v2
 pip install -e '.[dev]'
-pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask'
+pip install -U 'git+https://github.com/sgkit-dev/vcztools.git'
 # pip install -U -e ../vcztools  # sample-mask branch
 pip install -U 'git+https://github.com/cubed-dev/cubed.git@update'
 # pip install -e '../cubed[diagnostics]' # update branch
@@ -241,7 +241,7 @@ conda env remove -n vczstore-poc-xarray-zarr-v2
 conda create --name vczstore-poc-xarray-zarr-v2 -y 'python==3.12'
 conda activate vczstore-poc-xarray-zarr-v2
 pip install -e '.[dev]' xarray
-pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask'
+pip install -U 'git+https://github.com/sgkit-dev/vcztools.git'
 # pip install -U -e ../vcztools  # sample-mask branch
 pytest -vs -k xarray
 ```
@@ -257,7 +257,7 @@ conda create --name vczstore-poc-icechunk-cubed -y 'python==3.12'
 conda activate vczstore-poc-icechunk-cubed
 pip install -e '.[dev]'
 pip install -U 'git+https://github.com/sgkit-dev/bio2zarr.git'
-pip install -U 'git+https://github.com/tomwhite/vcztools.git@sample-mask-icechunk'
+pip install -U 'git+https://github.com/sgkit-dev/vcztools.git'
 # pip install -U -e ../bio2zarr  # zarr-format-3 branch
 # pip install -U -e ../vcztools  # sample-mask-icechunk branch
 pip install 'zarr>3' icechunk hypothesis
