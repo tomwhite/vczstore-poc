@@ -52,6 +52,12 @@ dev = [
   "vcztools",
 ]
 
+[tool.setuptools]
+packages = ["vczstore"]
+
+[tool.setuptools_scm]
+write_to = "vczstore/_version.py"
+
 [tool.ruff]
 # Assume Python 3.10
 target-version = "py310"
