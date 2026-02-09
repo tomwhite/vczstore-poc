@@ -28,10 +28,10 @@ def harmonise_alleles(variant_allele, variant_allele_new):
         )
 
     # first find new max alleles
-    max_alt_alleles = 0
+    max_alt_alleles = variant_allele.shape[1] - 1
     for i in range(n_variants):
-        alt = variant_allele[i][1:]
-        alt_new = variant_allele_new[i][1:]
+        alt = remove_end_fill(variant_allele[i][1:])
+        alt_new = remove_end_fill(variant_allele_new[i][1:])
         # for each alt allele in alt_new
         new_alleles = np.setdiff1d(alt_new, alt)
         max_alt_alleles = max(len(alt) + len(new_alleles), max_alt_alleles)
@@ -55,20 +55,24 @@ def harmonise_alleles(variant_allele, variant_allele_new):
                 f"but appended data is '{ref_new}'"
             )
 
-        alt = variant_allele[i][1:]
-        alt_new = variant_allele_new[i][1:]
+        alt = remove_end_fill(variant_allele[i][1:])
+        alt_new = remove_end_fill(variant_allele_new[i][1:])
 
         # for each alt allele in alt_new
         new_alleles = np.setdiff1d(alt_new, alt)
-        updated = np.append(variant_allele[i], new_alleles, axis=0)
+        updated = np.append(remove_end_fill(variant_allele[i]), new_alleles, axis=0)
         variant_allele_updated[i][: updated.shape[0]] = updated
 
         # remove fill values at end of array
-        variant_allele_new_no_fill = variant_allele_new[i][variant_allele_new[i] != ""]
+        variant_allele_new_no_fill = remove_end_fill(variant_allele_new[i])
         mapping = search(updated, variant_allele_new_no_fill)
         variant_allele_new_mapping[i][: variant_allele_new_no_fill.shape[0]] = mapping
 
     return variant_allele_updated, variant_allele_new_mapping
+
+
+def remove_end_fill(arr):
+    return arr[arr != ""]
 
 
 def remap_gt(gt, variant_allele_new_mapping):
