@@ -160,6 +160,3 @@ def test_append_icechunk(icechunk_storage):
     group = zarr.open_group(store=store, mode="r")
     np.testing.assert_array_equal(group["a"][:], np.concat((a, b), axis=1))
     assert group.attrs["ofh-tags"][-1]["max_samples"] == 6
-
-
-# TODO: parallel write

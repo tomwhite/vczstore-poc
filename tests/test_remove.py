@@ -52,8 +52,6 @@ def test_remove(tmp_path, remove_function):
 
     remove_function(vcz, "NA00002")
 
-    # TODO: note following requires the sample-mask branch of vcztools
-
     # check samples query
     vcztools_out, _ = run_vcztools(f"query -l {vcz}")
     assert vcztools_out.strip() == "NA00001\nNA00003"

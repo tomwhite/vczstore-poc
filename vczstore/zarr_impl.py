@@ -127,9 +127,6 @@ def remove(vcz, sample_id):
         ):
             root[var][:, selection, ...] = missing_val(arr)
 
-    # TODO: recalculate variant_AC, variant_AN
-    # see _compute_info_fields in vcztools
-
     # consolidate metadata (if supported)
     try:
         zarr.consolidate_metadata(vcz)

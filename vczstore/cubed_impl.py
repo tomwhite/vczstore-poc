@@ -116,9 +116,6 @@ def remove(vcz, sample_id, icechunk=False):
     else:
         cubed.compute(*cubed_arrays, _return_in_memory_array=False)
 
-    # TODO: recalculate variant_AC, variant_AN
-    # see _compute_info_fields in vcztools
-
     # consolidate metadata (if supported)
     try:
         zarr.consolidate_metadata(vcz)
