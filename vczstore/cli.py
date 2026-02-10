@@ -17,7 +17,7 @@ impl = click.option(
     "--impl",
     type=str,
     default=None,
-    help="Implementation to use; one of 'zarr' (default), 'cubed', or 'xarray'.",
+    help="Implementation to use; currently only 'zarr' (default).",
 )
 
 zarr_backend_storage = click.option(
@@ -37,10 +37,6 @@ def append(vcz1, vcz2, impl, zarr_backend_storage):
     """Append vcz2 to vcz1 in place"""
     if impl is None or impl == "zarr":
         from vczstore.zarr_impl import append as append_function
-    elif impl == "cubed":
-        from vczstore.cubed_impl import append as append_function
-    elif impl == "xarray":
-        from vczstore.xarray_impl import append as append_function
     else:
         raise ValueError(f"Unrecognised impl: {impl}")
 
@@ -63,10 +59,6 @@ def remove(vcz, sample_id, impl, zarr_backend_storage):
     """Remove a sample from vcz and overwrite with missing data"""
     if impl is None or impl == "zarr":
         from vczstore.zarr_impl import remove as remove_function
-    elif impl == "cubed":
-        from vczstore.cubed_impl import remove as remove_function
-    elif impl == "xarray":
-        from vczstore.xarray_impl import remove as remove_function
     else:
         raise ValueError(f"Unrecognised impl: {impl}")
 
