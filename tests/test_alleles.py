@@ -1,7 +1,7 @@
-# bcftools view tests/data/vcf/alleles-1.vcf -O z > tests/data/vcf/alleles-1.vcf.gz
-# bcftools view tests/data/vcf/alleles-2.vcf -O z > tests/data/vcf/alleles-2.vcf.gz
-# bcftools index -c tests/data/vcf/alleles-1.vcf.gz
-# bcftools index -c tests/data/vcf/alleles-2.vcf.gz
+# bcftools view tests/data/vcf/alleles-1.vcf --write-index=csi \
+#  -o tests/data/vcf/alleles-1.vcf.gz
+# bcftools view tests/data/vcf/alleles-2.vcf --write-index=csi \
+#  -o tests/data/vcf/alleles-2.vcf.gz
 
 # merging
 # bcftools merge tests/data/vcf/alleles-1.vcf.gz tests/data/vcf/alleles-2.vcf.gz
@@ -14,7 +14,7 @@ import zarr
 from numpy.testing import assert_array_equal
 
 from vczstore.allele_harmonisation import harmonise_alleles
-from vczstore.zarr_impl import append_harmonise
+from vczstore.zarr_impl import append
 
 from .utils import (
     compare_vcf_and_vcz,
@@ -47,6 +47,7 @@ from .utils import (
             [["A", "", ""], ["A", "C", "G"]],
             [[0, -2], [0, 2]],
         ),
+        ([["A", "", ""]], [["A", "C", ""]], [["A", "C", ""]], [[0, 1, -2]]),
     ],
 )
 def test_harmonise_alleles(
@@ -95,15 +96,15 @@ def test_append_different_alleles(tmp_path):
         variant_allele1, variant_allele2
     )
 
-    assert_array_equal(variant_allele1_updated, [["A", "C", "G"]])
-    assert_array_equal(variant_allele2_mapping, [[0, 2]])
+    assert_array_equal(variant_allele1_updated, [["A", "", ""], ["A", "C", "G"]])
+    assert_array_equal(variant_allele2_mapping, [[0, -2], [0, 2]])
 
 
 def test_append_harmonise(tmp_path):
     vcz1 = convert_vcf_to_vcz("alleles-1.vcf.gz", tmp_path)
     vcz2 = convert_vcf_to_vcz("alleles-2.vcf.gz", tmp_path)
 
-    append_harmonise(vcz1, vcz2)
+    append(vcz1, vcz2)
 
     # check equivalence with original VCF
     compare_vcf_and_vcz(

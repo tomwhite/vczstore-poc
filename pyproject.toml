@@ -18,6 +18,7 @@ authors = [
 dependencies = [
   "click>=8.2.0",
   "numpy>=1.23.5,<2.4",
+  "vcztools",
   "zarr>=2.17,<3",
 ]
 requires-python = ">=3.10"
@@ -49,7 +50,6 @@ dev = [
   "bio2zarr",
   "cyvcf2",
   "pytest",
-  "vcztools",
 ]
 
 [tool.setuptools]
