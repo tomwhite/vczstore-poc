@@ -15,8 +15,7 @@ logger = logging.getLogger(__name__)
 def append(vcz1, vcz2):
     """Append vcz2 to vcz1 in place"""
     root1 = zarr.open(vcz1, mode="r+")
-    # TODO: we'll update vcz2 in place to fix alleles (not sure this is OK?)
-    root2 = zarr.open(vcz2, mode="r+")
+    root2 = zarr.open(vcz2, mode="r")
 
     # append samples
     sample_id1 = root1["sample_id"]
@@ -49,7 +48,6 @@ def append(vcz1, vcz2):
             new_shape = (arr.shape[0], new_num_samples, arr.shape[2])
             arr.resize(new_shape)
 
-            # TODO: consider case where ploidy dim needs resizing (expanding)
             gt = root2[var][:]
             remap_gt(gt, variant_allele_new_mapping)
 
