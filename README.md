@@ -14,10 +14,10 @@ The key operations we want to support are:
 
 Using zarr-python directly (single machine)
 
-| zarr-python (format) | v2 (v2)            | v3 (v2)            | v3 (v3)            |
-|----------------------|--------------------|--------------------|--------------------|
-| **no transactions**  | :white_check_mark: | :white_check_mark: | :white_check_mark: |
-| **icechunk**         | N/A                | N/A                | :white_check_mark: |
+| zarr-python (format) | v3 (v2)            | v3 (v3)            |
+|----------------------|--------------------|--------------------|
+| **no transactions**  | :white_check_mark: | :white_check_mark: |
+| **icechunk**         | N/A                | :white_check_mark: |
 
 In addition the following things are missing or not yet supported:
 
@@ -29,10 +29,10 @@ In addition the following things are missing or not yet supported:
 
 * Transactions: none
 * Distributed: single machine
-* Zarr: v2
+* Zarr: v3, format 2
 
 ```shell
-% conda activate vczstore-poc-zarr-v2
+% conda activate vczstore-poc-zarr-v3
 
 # Create some VCZ data
 % rm -rf data
@@ -104,9 +104,6 @@ NA00003
 All (quick)
 
 ```shell
-conda activate vczstore-poc-zarr-v2
-pytest -vs
-
 conda activate vczstore-poc-zarr-v3
 pytest -vs
 
@@ -119,21 +116,6 @@ BIO2ZARR_ZARR_FORMAT=3 pytest -vs -k icechunk
 
 * Transactions: none
 * Distributed: single machine
-* Zarr: v2
-
-```shell
-conda deactivate
-conda env remove -n vczstore-poc-zarr-v2
-conda create --name vczstore-poc-zarr-v2 -y 'python==3.12'
-conda activate vczstore-poc-zarr-v2
-pip install -e '.[dev]'
-pip install -U 'git+https://github.com/sgkit-dev/vcztools.git'
-# pip install -U -e ../vcztools  # sample-mask branch
-pytest -vs
-```
-
-* Transactions: none
-* Distributed: single machine
 * Zarr: v3
 
 ```shell
@@ -142,11 +124,6 @@ conda env remove -n vczstore-poc-zarr-v3
 conda create --name vczstore-poc-zarr-v3 -y 'python==3.12'
 conda activate vczstore-poc-zarr-v3
 pip install -e '.[dev]'
-pip install -U 'git+https://github.com/sgkit-dev/bio2zarr.git'
-pip install -U 'git+https://github.com/sgkit-dev/vcztools.git'
-# pip install -U -e ../bio2zarr  # main branch
-# pip install -U -e ../vcztools  # sample-mask branch
-pip install 'zarr>3'
 pytest -vs
 ```
 
@@ -160,11 +137,6 @@ conda env remove -n vczstore-poc-zarr-v3-f3
 conda create --name vczstore-poc-zarr-v3-f3 -y 'python==3.12'
 conda activate vczstore-poc-zarr-v3-f3
 pip install -e '.[dev]'
-pip install -U 'git+https://github.com/sgkit-dev/bio2zarr.git'
-pip install -U 'git+https://github.com/sgkit-dev/vcztools.git'
-# pip install -U -e ../bio2zarr  # zarr-format-3 branch
-# pip install -U -e ../vcztools  # sample-mask branch
-pip install 'zarr>3'
 BIO2ZARR_ZARR_FORMAT=3 pytest -vs
 ```
 
@@ -178,10 +150,6 @@ conda env remove -n vczstore-poc-icechunk
 conda create --name vczstore-poc-icechunk -y 'python==3.12'
 conda activate vczstore-poc-icechunk
 pip install -e '.[dev]'
-pip install -U 'git+https://github.com/sgkit-dev/bio2zarr.git'
-pip install -U 'git+https://github.com/sgkit-dev/vcztools.git'
-# pip install -U -e ../bio2zarr  # zarr-format-3 branch
-# pip install -U -e ../vcztools  # sample-mask-icechunk branch
-pip install 'zarr>3' icechunk hypothesis
+pip install icechunk hypothesis
 BIO2ZARR_ZARR_FORMAT=3 pytest -vs -k icechunk
 ```
