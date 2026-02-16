@@ -83,13 +83,6 @@ def append(vcz1, vcz2):
                     )
                     arr.resize(new_shape)
 
-    # consolidate metadata (if supported)
-    try:
-        zarr.consolidate_metadata(vcz1)
-    except TypeError:
-        # store doesn't support consolidated metadata, that's OK
-        pass
-
 
 def remove(vcz, sample_id):
     """Remove a sample from vcz and overwrite with missing data"""
@@ -112,10 +105,3 @@ def remove(vcz, sample_id):
             and dims(arr)[1] == "samples"
         ):
             root[var][:, selection, ...] = missing_val(arr)
-
-    # consolidate metadata (if supported)
-    try:
-        zarr.consolidate_metadata(vcz)
-    except TypeError:
-        # store doesn't support consolidated metadata, that's OK
-        pass
