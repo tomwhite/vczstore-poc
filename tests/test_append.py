@@ -53,6 +53,17 @@ def test_append_fail_num_variants_mismatch(tmp_path):
         append(vcz1, vcz2)
 
 
+def test_append_fail_alleles_mismatch(tmp_path):
+    vcz1 = convert_vcf_to_vcz("sample-part1.vcf.gz", tmp_path)
+    vcz2 = convert_vcf_to_vcz("sample-part2-alleles-mismatch.vcf.gz", tmp_path)
+
+    with pytest.raises(
+        ValueError,
+        match="Stores being appended must have same values for field 'variant_allele'",
+    ):
+        append(vcz1, vcz2)
+
+
 def test_append_icechunk(tmp_path):
     pytest.importorskip("icechunk")
     from vczstore.icechunk_utils import icechunk_transaction
