@@ -17,6 +17,15 @@ def append(vcz1, vcz2):
     root1 = zarr.open(vcz1, mode="r+")
     root2 = zarr.open(vcz2, mode="r")
 
+    # check preconditions
+    n_variants1 = root1["variant_contig"].shape[0]
+    n_variants2 = root2["variant_contig"].shape[0]
+    if n_variants1 != n_variants2:
+        raise ValueError(
+            "Stores being appended must have same number of variants. "
+            f"First has {n_variants1}, second has {n_variants2}"
+        )
+
     # append samples
     sample_id1 = root1["sample_id"]
     sample_id2 = root2["sample_id"]
