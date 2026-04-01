@@ -25,6 +25,13 @@ def append(vcz1, vcz2):
             "Stores being appended must have same number of variants. "
             f"First has {n_variants1}, second has {n_variants2}"
         )
+    for field in ("contig_id", "variant_contig", "variant_position", "variant_allele"):
+        values1 = root1[field][:]
+        values2 = root2[field][:]
+        if np.any(values1 != values2):
+            raise ValueError(
+                f"Stores being appended must have same values for field '{field}'"
+            )
 
     # append samples
     sample_id1 = root1["sample_id"]
