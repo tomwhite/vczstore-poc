@@ -59,7 +59,7 @@ jobs:
           channels: conda-forge,bioconda
 
       - name: Install conda test tools
-        run: conda install bcftools plink
+        run: conda install bcftools
 
       - name: Install uv
         uses: astral-sh/setup-uv@v6
@@ -67,8 +67,6 @@ jobs:
       - name: Install test dependencies
         run: |
           uv sync --locked --group test --no-default-groups
-          # Build the extension module in-place so pytest can find it
-          uv run python setup.py build_ext --inplace
 
       - name: Run tests
         run: |
@@ -132,7 +130,7 @@ jobs:
           channels: conda-forge,bioconda
 
       - name: Install conda test tools
-        run: conda install bcftools plink
+        run: conda install bcftools
 
       - name: Install uv
         uses: astral-sh/setup-uv@v6
@@ -140,8 +138,6 @@ jobs:
       - name: Install test dependencies
         run: |
           uv sync --locked --group test --no-default-groups
-          # Build the extension module in-place so pytest can find it
-          uv run python setup.py build_ext --inplace
 
       - name: Install icechunk
         if: matrix.zarr-format == 3

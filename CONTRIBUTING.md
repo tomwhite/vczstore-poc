@@ -18,7 +18,7 @@ uv sync --group dev
 uv run pytest
 ```
 
-Note: some tests require `bcftools` and `plink` to be installed
+Note: some tests require `bcftools` to be installed
 (available via conda-forge and bioconda).
 
 ## Linting
