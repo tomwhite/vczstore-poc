@@ -117,6 +117,10 @@ jobs:
     strategy:
       matrix:
         zarr-format: [2, 3]
+        icechunk: ["", "Y"]
+        exclude:
+          - zarr-format: 2
+            icechunk: "Y"
     steps:
       - uses: actions/checkout@v4.2.2
         with:
@@ -140,9 +144,9 @@ jobs:
           uv sync --locked --group test --no-default-groups
 
       - name: Install icechunk
-        if: matrix.zarr-format == 3
+        if: matrix.icechunk == "Y"
         run: |
-          uv pip install icechunk hypothesis
+          uv sync --extra icechunk
 
       - name: Run tests
         run: |
