@@ -1,5 +1,8 @@
+import dataclasses
+
 import numpy as np
 import zarr
+from bio2zarr.core import JsonDataclass
 from bio2zarr.vcz import VcfZarrPartition
 from vcztools.utils import search
 from vcztools.vcf_writer import dims
@@ -7,9 +10,30 @@ from vcztools.vcf_writer import dims
 from vczstore.utils import missing_val
 
 
-def append_init(vcz1, vcz2, num_partitions):
+@dataclasses.dataclass
+class AppendWorkSummary(JsonDataclass):
+    num_partitions: int
+    num_variants: int
+
+
+@dataclasses.dataclass
+class RemoveWorkSummary(JsonDataclass):
+    num_partitions: int
+    num_variants: int
+
+
+def append_init(vcz1, vcz2, target_num_partitions) -> AppendWorkSummary:
     root1 = zarr.open(vcz1, mode="r+")
     root2 = zarr.open(vcz2, mode="r")
+
+    # calculate actual number of partitions
+    # TODO: check all variants dims are the same
+    num_variants = root1["variant_position"].shape[0]
+    variants_chunk_size = root1["variant_position"].chunks[0]
+    partitions = VcfZarrPartition.generate_partitions(
+        num_variants, variants_chunk_size, target_num_partitions
+    )
+    num_partitions = len(partitions)
 
     # check preconditions
     n_variants1 = root1["variant_contig"].shape[0]
@@ -19,14 +43,8 @@ def append_init(vcz1, vcz2, num_partitions):
             "Stores being appended must have same number of variants. "
             f"First has {n_variants1}, second has {n_variants2}"
         )
-    # TODO: check these preconditions in each partition
-    for field in ("contig_id", "variant_contig", "variant_position", "variant_allele"):
-        values1 = root1[field][:]
-        values2 = root2[field][:]
-        if np.any(values1 != values2):
-            raise ValueError(
-                f"Stores being appended must have same values for field '{field}'"
-            )
+    # note that variant field precondition checks are made in append_partition
+    # if any fail then the data may be left in an inconsistent state
 
     # append samples
     sample_id1 = root1["sample_id"]
@@ -54,9 +72,13 @@ def append_init(vcz1, vcz2, num_partitions):
     # store append parameters in zarr attributes
     root1.attrs["append"] = {
         "num_partitions": num_partitions,
+        "num_variants": num_variants,
+        "variants_chunk_size": variants_chunk_size,
         "old_num_samples": old_num_samples,
         "new_num_samples": new_num_samples,
     }
+
+    return AppendWorkSummary(num_partitions, num_variants)
 
 
 def append_partition(vcz1, vcz2, partition_index):
@@ -65,27 +87,39 @@ def append_partition(vcz1, vcz2, partition_index):
 
     append_attrs = root1.attrs["append"]
     num_partitions = int(append_attrs["num_partitions"])
+    num_variants = int(append_attrs["num_variants"])
+    variants_chunk_size = int(append_attrs["variants_chunk_size"])
     old_num_samples = int(append_attrs["old_num_samples"])
     new_num_samples = int(append_attrs["new_num_samples"])
 
-    n_variants = root1["variant_position"].shape[0]
-    variants_chunk_size = root1["variant_position"].chunks[0]
-
     partitions = VcfZarrPartition.generate_partitions(
-        n_variants, variants_chunk_size, num_partitions
+        num_variants, variants_chunk_size, num_partitions
     )
     partition = partitions[partition_index]
+    partition_sel = slice(partition.start, partition.stop)
+
+    # check preconditions
+    for field in ("contig_id", "variant_contig", "variant_position", "variant_allele"):
+        values1 = root1[field][partition_sel]
+        values2 = root2[field][partition_sel]
+        if np.any(values1 != values2):
+            raise ValueError(
+                f"Stores being appended must have same values for field '{field}'"
+            )
 
     # append genotype fields
     for var in root1.keys():
         if var.startswith("call_"):
             arr = root1[var]
-            # TODO: check chunk size of variable
             sl = slice(partition.start, partition.stop)
             if arr.ndim == 2:
-                arr[sl, old_num_samples:new_num_samples] = root2[var][sl, ...]
+                arr[partition_sel, old_num_samples:new_num_samples] = root2[var][
+                    sl, ...
+                ]
             elif arr.ndim == 3:
-                arr[sl, old_num_samples:new_num_samples, :] = root2[var][sl, ...]
+                arr[partition_sel, old_num_samples:new_num_samples, :] = root2[var][
+                    sl, ...
+                ]
             else:
                 raise ValueError("unsupported number of dims")
 
@@ -95,8 +129,18 @@ def append_finalise(vcz1, vcz2):
     del root.attrs["append"]
 
 
-def remove_init(vcz, sample_id, num_partitions):
+def remove_init(vcz, sample_id, target_num_partitions) -> RemoveWorkSummary:
     root = zarr.open(vcz, mode="r+")
+
+    # calculate actual number of partitions
+    # TODO: check all variants dims are the same
+    num_variants = root["variant_position"].shape[0]
+    variants_chunk_size = root["variant_position"].chunks[0]
+    partitions = VcfZarrPartition.generate_partitions(
+        num_variants, variants_chunk_size, target_num_partitions
+    )
+    num_partitions = len(partitions)
+
     all_samples = root["sample_id"][:]
 
     # find index of sample to remove
@@ -111,8 +155,12 @@ def remove_init(vcz, sample_id, num_partitions):
     # store remove parameters in zarr attributes
     root.attrs["remove"] = {
         "num_partitions": num_partitions,
+        "num_variants": num_variants,
+        "variants_chunk_size": variants_chunk_size,
         "sample_index": int(selection),
     }
+
+    return RemoveWorkSummary(num_partitions, num_variants)
 
 
 def remove_partition(vcz, partition_index):
@@ -120,15 +168,15 @@ def remove_partition(vcz, partition_index):
 
     remove_attrs = root.attrs["remove"]
     num_partitions = int(remove_attrs["num_partitions"])
+    num_variants = int(remove_attrs["num_variants"])
+    variants_chunk_size = int(remove_attrs["variants_chunk_size"])
     sample_index = int(remove_attrs["sample_index"])
 
-    n_variants = root["variant_position"].shape[0]
-    variants_chunk_size = root["variant_position"].chunks[0]
-
     partitions = VcfZarrPartition.generate_partitions(
-        n_variants, variants_chunk_size, num_partitions
+        num_variants, variants_chunk_size, num_partitions
     )
     partition = partitions[partition_index]
+    partition_sel = slice(partition.start, partition.stop)
 
     # overwrite call variables
     for var in root.keys():
@@ -138,9 +186,7 @@ def remove_partition(vcz, partition_index):
             and dims(arr)[0] == "variants"
             and dims(arr)[1] == "samples"
         ):
-            # TODO: check chunk size of variable
-            sl = slice(partition.start, partition.stop)
-            root[var][sl, sample_index, ...] = missing_val(arr)
+            root[var][partition_sel, sample_index, ...] = missing_val(arr)
 
 
 def remove_finalise(vcz):
