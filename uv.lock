@@ -1402,7 +1402,7 @@ all = [
 ]
 
 [[package]]
-name = "vczstore-poc"
+name = "vczstore"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
