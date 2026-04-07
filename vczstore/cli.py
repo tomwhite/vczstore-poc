@@ -12,6 +12,11 @@ class NaturalOrderGroup(click.Group):
         return self.commands.keys()
 
 
+def show_work_summary(work_summary):
+    output = work_summary.asjson()
+    click.echo(output)
+
+
 num_partitions = click.option(
     "-n",
     "--num-partitions",
@@ -92,7 +97,8 @@ def dappend_init(vcz1, vcz2, num_partitions):
     """
     from vczstore.zarr_partition_impl import append_init
 
-    append_init(vcz1, vcz2, num_partitions)
+    work_summary = append_init(vcz1, vcz2, target_num_partitions=num_partitions)
+    show_work_summary(work_summary)
 
 
 @click.command()
@@ -133,7 +139,8 @@ def dremove_init(vcz, sample_id, num_partitions):
     """
     from vczstore.zarr_partition_impl import remove_init
 
-    remove_init(vcz, sample_id, num_partitions)
+    work_summary = remove_init(vcz, sample_id, target_num_partitions=num_partitions)
+    show_work_summary(work_summary)
 
 
 @click.command()

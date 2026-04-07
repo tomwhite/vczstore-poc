@@ -132,6 +132,10 @@ NA00003
 
 # Append data to the store using 3 processes
 % uv run vczstore dappend-init data/store.vcz data/chr22-part2.vcf.vcz -n 3
+{
+    "num_partitions": 3,
+    "num_variants": 100
+}
 % parallel -j 3 uv run vczstore dappend-partition data/store.vcz data/chr22-part2.vcf.vcz {} ::: $(seq 0 2)
 % uv run vczstore dappend-finalise data/store.vcz data/chr22-part2.vcf.vcz
 % uv run vcztools query -l data/store.vcz | wc -l
@@ -139,6 +143,10 @@ NA00003
 
 # Remove a sample from the store using 3 processes
 % uv run vczstore dremove-init data/store.vcz HG00100 -n 3
+{
+    "num_partitions": 3,
+    "num_variants": 100
+}
 % parallel -j 3 uv run vczstore dremove-partition data/store.vcz {} ::: $(seq 0 2)
 % uv run vczstore dremove-finalise data/store.vcz
 % uv run vcztools query -l data/store.vcz | wc -l
