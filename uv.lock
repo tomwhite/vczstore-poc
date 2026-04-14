@@ -1549,6 +1549,7 @@ name = "vczstore"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
+    { name = "more-itertools" },
     { name = "numpy" },
     { name = "vcztools" },
     { name = "zarr" },
@@ -1594,6 +1595,7 @@ requires-dist = [
     { name = "click", specifier = ">=8.2.0" },
     { name = "hypothesis", marker = "extra == 'icechunk'" },
     { name = "icechunk", marker = "extra == 'icechunk'" },
+    { name = "more-itertools" },
     { name = "numpy", specifier = ">=1.23.5,<2.4" },
     { name = "vcztools", git = "https://github.com/sgkit-dev/vcztools.git" },
     { name = "zarr", specifier = ">=3.1" },

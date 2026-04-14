@@ -17,6 +17,7 @@ authors = [
 ]
 dependencies = [
   "click>=8.2.0",
+  "more_itertools",
   "numpy>=1.23.5,<2.4",
   "vcztools @ git+https://github.com/sgkit-dev/vcztools.git",
   "zarr>=3.1",
@@ -105,6 +106,7 @@ known-third-party = [
   "bio2zarr",
   "click",
   "cyvcf2",
+  "more_itertools",
   "numpy",
   "pytest",
   "setuptools",
