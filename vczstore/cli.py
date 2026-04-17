@@ -61,7 +61,7 @@ def append(vcz1, vcz2, impl, zarr_backend_storage):
 @click.argument("vcz2_norm", type=click.Path())
 def normalise(vcz1, vcz2, vcz2_norm):
     """Normalise variants in vcz2 with respect to vcz1 and write to vcz2_norm"""
-    from vczstore.zarr_impl import normalise as normalise_function
+    from vczstore.normalise import normalise as normalise_function
 
     normalise_function(vcz1, vcz2, vcz2_norm)
 
