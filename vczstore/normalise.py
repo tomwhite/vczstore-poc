@@ -6,17 +6,17 @@ from vcztools.constants import STR_FILL, STR_MISSING
 from vcztools.retrieval import VczReader
 from vcztools.utils import array_dims, search
 
-from vczstore.utils import missing_val, variant_chunk_slices
+from vczstore.utils import missing_val, variant_chunk_slices, variants_progress
 
 
-def normalise(vcz1, vcz2, vcz2_norm):
+def normalise(vcz1, vcz2, vcz2_norm, show_progress=False):
     """Normalise variants in vcz2 with respect to vcz1 and write to vcz2_norm.
 
     vcz1, vcz2, vcz2_norm are paths or Zarr stores. Variants in vcz1 not present
     in vcz2 are filled with missing values.
     """
     index, remap_alleles, allele_mappings, updated_allele_mappings = index_variants(
-        vcz1, vcz2
+        vcz1, vcz2, show_progress=show_progress
     )
 
     if len(updated_allele_mappings) > 0:
@@ -96,31 +96,33 @@ def normalise(vcz1, vcz2, vcz2_norm):
     allele_mappings_list = list(allele_mappings.values())
 
     # copy variant-chunked arrays
-    for i, v_sel in enumerate(variant_chunk_slices(root1)):
-        for var, arr in root2.arrays():
-            if array_dims(arr)[0] != "variants":
-                continue
-            # copy genotype fields from vcz2, everything else from vcz1
-            if var.startswith("call_"):
-                arr = root2[var]
-                chunk_n = v_sel.stop - v_sel.start
-                shape = (chunk_n,) + arr.shape[1:]
-                data = np.full(shape, fill_value=missing_val(arr), dtype=arr.dtype)
+    with variants_progress(n_variants, "Write", show_progress) as pbar:
+        for i, v_sel in enumerate(variant_chunk_slices(root1)):
+            for var, arr in root2.arrays():
+                if array_dims(arr)[0] != "variants":
+                    continue
+                # copy genotype fields from vcz2, everything else from vcz1
+                if var.startswith("call_"):
+                    arr = root2[var]
+                    chunk_n = v_sel.stop - v_sel.start
+                    shape = (chunk_n,) + arr.shape[1:]
+                    data = np.full(shape, fill_value=missing_val(arr), dtype=arr.dtype)
 
-                match_sl = slice(match_starts[i], match_starts[i + 1])
-                local_idx = match_idx[match_sl] - v_sel.start
-                data[local_idx, ...] = arr[match_sl, ...]
+                    match_sl = slice(match_starts[i], match_starts[i + 1])
+                    local_idx = match_idx[match_sl] - v_sel.start
+                    data[local_idx, ...] = arr[match_sl, ...]
 
-                if var == "call_genotype":
-                    remap_sl = slice(remap_starts[i], remap_starts[i + 1])
-                    local_remap_idx = remap_idx[remap_sl] - v_sel.start
-                    chunk_maps = allele_mappings_list[remap_sl]
-                    remap_genotypes(data, local_remap_idx, chunk_maps)
+                    if var == "call_genotype":
+                        remap_sl = slice(remap_starts[i], remap_starts[i + 1])
+                        local_remap_idx = remap_idx[remap_sl] - v_sel.start
+                        chunk_maps = allele_mappings_list[remap_sl]
+                        remap_genotypes(data, local_remap_idx, chunk_maps)
 
-                norm_root[var][v_sel] = data
-            else:
-                arr = root1[var]
-                norm_root[var][v_sel] = arr[v_sel, ...]
+                    norm_root[var][v_sel] = data
+                else:
+                    arr = root1[var]
+                    norm_root[var][v_sel] = arr[v_sel, ...]
+            pbar.update(v_sel.stop - v_sel.start)
 
 
 def remap_genotypes(gt, indices, mappings):
@@ -139,7 +141,7 @@ def remap_genotypes(gt, indices, mappings):
                     gt[i, j, k] = mapping[val]
 
 
-def index_variants(vcz1, vcz2):
+def index_variants(vcz1, vcz2, *, show_progress=False):
     """Construct an index for variants of vcz2 that are in vcz1.
 
     Returns:
@@ -170,27 +172,30 @@ def index_variants(vcz1, vcz2):
     fields = ["variant_contig", "variant_position", "variant_allele"]
     it1 = VczReader(vcz1).variants(fields=fields)
     it2 = peekable(VczReader(vcz2).variants(fields=fields))
-    for i, variant in enumerate(it1):
-        v = it2.peek(None)
-        if v is None:
-            # it2 is exhausted - leave rest of index as False
-            break
-        matched, mapping, updated = variants_match(variant, v)
-        if matched:
-            # advance it2 and continue to next variant in it1
-            next(it2)
-            index[i] = True
-            if mapping is not None:
-                remap_alleles[i] = True
-                allele_mappings[i] = mapping
-            if updated is not None:
-                updated_allele_mappings[i] = updated
-        else:
-            if cmp_variant_site(variant, v) > 0:
-                raise ValueError(
-                    "Variant in vcz2 not found in vcz1 (or vcz2 is out of order): "
-                    f"{variant_repr(v)}"
-                )
+
+    with variants_progress(n_variants, "Index", show_progress) as pbar:
+        for i, variant in enumerate(it1):
+            v = it2.peek(None)
+            if v is None:
+                # it2 is exhausted - leave rest of index as False
+                break
+            matched, mapping, updated = variants_match(variant, v)
+            if matched:
+                # advance it2 and continue to next variant in it1
+                next(it2)
+                index[i] = True
+                if mapping is not None:
+                    remap_alleles[i] = True
+                    allele_mappings[i] = mapping
+                if updated is not None:
+                    updated_allele_mappings[i] = updated
+            else:
+                if cmp_variant_site(variant, v) > 0:
+                    raise ValueError(
+                        "Variant in vcz2 not found in vcz1 (or vcz2 is out of order): "
+                        f"{variant_repr(v)}"
+                    )
+            pbar.update()
 
     # when it1 is exhausted error if there are any variants left in it2
     v = it2.peek(None)

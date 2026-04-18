@@ -20,6 +20,7 @@ dependencies = [
   "click>=8.2.0",
   "more_itertools",
   "numpy>=1.23.5,<2.4",
+  "tqdm",
   "vcztools @ git+https://github.com/sgkit-dev/vcztools.git",
   "zarr>=3.1",
 ]

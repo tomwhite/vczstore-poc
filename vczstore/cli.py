@@ -21,6 +21,14 @@ def show_work_summary(work_summary):
     click.echo(output)
 
 
+progress = click.option(
+    "-P /-Q",
+    "--progress/--no-progress",
+    default=True,
+    help="Show progress bars (default: show)",
+)
+
+
 zarr_backend_storage = click.option(
     "--zarr-backend-storage",
     type=str,
@@ -32,8 +40,9 @@ zarr_backend_storage = click.option(
 @click.command()
 @click.argument("vcz1", type=click.Path())
 @click.argument("vcz2", type=click.Path())
+@progress
 @zarr_backend_storage
-def append(vcz1, vcz2, zarr_backend_storage):
+def append(vcz1, vcz2, progress, zarr_backend_storage):
     """Append vcz2 to vcz1 in place"""
     if zarr_backend_storage == "icechunk":
         from vczstore.icechunk_utils import icechunk_transaction
@@ -42,23 +51,25 @@ def append(vcz1, vcz2, zarr_backend_storage):
     else:
         cm = nullcontext(vcz1)
     with cm as vcz1:
-        append_function(vcz1, vcz2)
+        append_function(vcz1, vcz2, show_progress=progress)
 
 
 @click.command()
 @click.argument("vcz1", type=click.Path())
 @click.argument("vcz2", type=click.Path())
 @click.argument("vcz2_norm", type=click.Path())
-def normalise(vcz1, vcz2, vcz2_norm):
+@progress
+def normalise(vcz1, vcz2, vcz2_norm, progress):
     """Normalise variants in vcz2 with respect to vcz1 and write to vcz2_norm"""
-    normalise_function(vcz1, vcz2, vcz2_norm)
+    normalise_function(vcz1, vcz2, vcz2_norm, show_progress=progress)
 
 
 @click.command()
 @click.argument("vcz", type=click.Path())
 @click.argument("sample_id", type=str)
+@progress
 @zarr_backend_storage
-def remove(vcz, sample_id, zarr_backend_storage):
+def remove(vcz, sample_id, progress, zarr_backend_storage):
     """Remove a sample from vcz and overwrite with missing data"""
     if zarr_backend_storage == "icechunk":
         from vczstore.icechunk_utils import icechunk_transaction
@@ -67,7 +78,7 @@ def remove(vcz, sample_id, zarr_backend_storage):
     else:
         cm = nullcontext(vcz)
     with cm as vcz:
-        remove_function(vcz, sample_id)
+        remove_function(vcz, sample_id, show_progress=progress)
 
 
 @click.command()

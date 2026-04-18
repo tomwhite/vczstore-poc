@@ -1552,6 +1552,7 @@ dependencies = [
     { name = "click" },
     { name = "more-itertools" },
     { name = "numpy" },
+    { name = "tqdm" },
     { name = "vcztools" },
     { name = "zarr" },
 ]
@@ -1597,6 +1598,7 @@ requires-dist = [
     { name = "icechunk", marker = "extra == 'icechunk'" },
     { name = "more-itertools" },
     { name = "numpy", specifier = ">=1.23.5,<2.4" },
+    { name = "tqdm" },
     { name = "vcztools", git = "https://github.com/sgkit-dev/vcztools.git" },
     { name = "zarr", specifier = ">=3.1" },
 ]

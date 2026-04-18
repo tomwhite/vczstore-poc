@@ -4,14 +4,15 @@ import numpy as np
 import zarr
 from vcztools.utils import array_dims, search
 
-from vczstore.utils import missing_val, variant_chunk_slices
+from vczstore.utils import missing_val, variant_chunk_slices, variants_progress
 
 logger = logging.getLogger(__name__)
 
 
-def remove(vcz, sample_id):
+def remove(vcz, sample_id, *, show_progress=False):
     """Remove a sample from vcz and overwrite with missing data"""
     root = zarr.open(vcz, mode="r+")
+    n_variants = root["variant_contig"].shape[0]
     all_samples = root["sample_id"][:]
 
     # find index of sample to remove
@@ -22,12 +23,14 @@ def remove(vcz, sample_id):
 
     # overwrite sample data
     root["sample_id"][sample_selection] = ""
-    for variant_selection in variant_chunk_slices(root):
-        for var in root.keys():
-            arr = root[var]
-            if (
-                var.startswith("call_")
-                and array_dims(arr)[0] == "variants"
-                and array_dims(arr)[1] == "samples"
-            ):
-                arr[variant_selection, sample_selection, ...] = missing_val(arr)
+    with variants_progress(n_variants, "Remove", show_progress) as pbar:
+        for v_sel in variant_chunk_slices(root):
+            for var in root.keys():
+                arr = root[var]
+                if (
+                    var.startswith("call_")
+                    and array_dims(arr)[0] == "variants"
+                    and array_dims(arr)[1] == "samples"
+                ):
+                    arr[v_sel, sample_selection, ...] = missing_val(arr)
+        pbar.update(v_sel.stop - v_sel.start)

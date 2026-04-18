@@ -3,12 +3,12 @@ import logging
 import numpy as np
 import zarr
 
-from vczstore.utils import variant_chunk_slices
+from vczstore.utils import variant_chunk_slices, variants_progress
 
 logger = logging.getLogger(__name__)
 
 
-def append(vcz1, vcz2):
+def append(vcz1, vcz2, *, show_progress=False):
     """Append vcz2 to vcz1 in place"""
     root1 = zarr.open(vcz1, mode="r+")
     root2 = zarr.open(vcz2, mode="r")
@@ -53,9 +53,11 @@ def append(vcz1, vcz2):
                 raise ValueError("unsupported number of array_dims")
 
     # append genotype fields
-    for variant_selection in variant_chunk_slices(root1):
-        for var in root1.keys():
-            if var.startswith("call_"):
-                root1[var][variant_selection, old_num_samples:new_num_samples, ...] = (
-                    root2[var][variant_selection, ...]
-                )
+    with variants_progress(n_variants1, "Append", show_progress) as pbar:
+        for v_sel in variant_chunk_slices(root1):
+            for var in root1.keys():
+                if var.startswith("call_"):
+                    root1[var][v_sel, old_num_samples:new_num_samples, ...] = root2[
+                        var
+                    ][v_sel, ...]
+            pbar.update(v_sel.stop - v_sel.start)
