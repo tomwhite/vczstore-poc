@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from typing import Any
 
+import tqdm
 from vcztools.constants import FLOAT32_MISSING, INT_MISSING, STR_MISSING
 
 
@@ -27,6 +28,17 @@ def variant_chunk_slices(root):
         start = v_chunksize * v_chunk
         end = min(v_chunksize * (v_chunk + 1), size)
         yield slice(start, end)
+
+
+def variants_progress(n_variants, title, show_progress=False):
+    return tqdm.tqdm(
+        total=n_variants,
+        desc=f"{title:>8}",
+        unit_scale=True,
+        unit="vars",
+        smoothing=0.1,
+        disable=not show_progress,
+    )
 
 
 def merge_lists(l1: list, l2: list, *, key: Callable[[Any], Any] = lambda x: x) -> list:
